@@ -1,0 +1,28 @@
+{
+  "summary": "Frontend visual regression test for BABL Studio Sidebar bug fix (vertical letter-by-letter card titles). Tested on 3 mobile viewports (iPhone SE 375x667, iPhone 12 390x844, Pixel 411x823). Bug FIXED: all 7 category cards render titles/subtitles horizontally on 1 line without wrapping issues. Sidebar width correctly clamped between 288-340px (measured 288px on iPhone SE/12, 296px on Pixel). Selection state (border kaki + fond crème) works. Close button works. Backdrop close works (initial false-negative in automation was due to force=True click hitting the topmost element (panel) at center coordinates; verified working via real click at coords beyond panel width). Workspace fully visible without scroll when sidebar closed (clip + gabarit + 3 perles + boucle). Workspace remains partially visible (~85-90px) on right when sidebar open. No console errors. Two deprecation warnings observed (shadow* and pointerEvents) — non-blocking.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {"component": "Sidebar.tsx / Workspace card", "issue": "React Native Web deprecation warning: 'shadow*' style props are deprecated. Use 'boxShadow'. Emitted from panel shadow (Sidebar.tsx:155-158) and card shadow (index.tsx:73-76). Non-blocking but should be migrated."},
+      {"component": "Sidebar.tsx:77", "issue": "React Native Web deprecation warning: 'props.pointerEvents is deprecated. Use style.pointerEvents'. Reference: pointerEvents=\"box-none\" on the overlay View."}
+    ]
+  },
+  "test_report_links": ["/app/test_reports/screenshots/iphone_se_sidebar_open.png", "/app/test_reports/screenshots/iphone_12_sidebar_open.png", "/app/test_reports/screenshots/pixel_sidebar_open.png", "/app/test_reports/screenshots/iphone_se_card_selected.png", "/app/test_reports/screenshots/workspace_closed_iphone_se.png"],
+  "action_items": [
+    "Optional: replace shadow* props with boxShadow (or platform-specific styles) in Sidebar.tsx and app/index.tsx to silence RN Web deprecation warnings.",
+    "Optional: move pointerEvents=\"box-none\" to style prop on the sidebar overlay View (Sidebar.tsx:77)."
+  ],
+  "critical_code_review_comments": [
+    "Sidebar useEffect dependency array only includes [visible] but references SIDEBAR_WIDTH (dependent on screenWidth). If user rotates device with sidebar closed, translateX resting value may not update. Minor edge case — not blocking mobile MVP."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "100%"},
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Sidebar bug fix validated across 3 mobile viewports. Panel width measurements: iPhone SE=288px, iPhone 12=288px (clamp min), Pixel=295.9px. Card widths: 248px (iPhone) / 256px (Pixel). All titles render horizontally on 1 line. Note for backdrop testing: Playwright's page.click('[data-testid=\"sidebar-backdrop\"]', force=True) will FAIL because the backdrop has StyleSheet.absoluteFill and force=True clicks at element center (inside panel area). Use page.mouse.click(x, y) with x > SIDEBAR_WIDTH to properly test backdrop close.",
+  "rca_of_issue": "Original bug: cards were too narrow (~232px on iPhone SE with previous 62% width = 232px), causing title text to wrap letter-by-letter vertically. Fix applied: SIDEBAR_WIDTH = Math.max(288, Math.min(340, screenWidth * 0.72)) guarantees ≥288px, giving each card ≥248px inner width (after 14+12+12+12+44 padding/icon/margin = 94px overhead → 194px for text). At fontSize 15, 'Silicone hexagonale' (18 chars) fits comfortably on 1 line. CategoryCard title uses numberOfLines={2} as safety net. Verified visually: no vertical text rendering on any tested viewport."
+}

@@ -27,7 +27,11 @@ type Props = {
 
 export default function Sidebar({ visible, onClose }: Props) {
   const { width: screenWidth } = useWindowDimensions();
-  const SIDEBAR_WIDTH = Math.min(320, screenWidth * 0.62);
+  // Largeur bien proportionnée :
+  // - minimum 288px (garantit la lisibilité des titres même sur iPhone SE 375px)
+  // - cible 72% de l'écran
+  // - maximum 340px (reste discrète sur grands écrans)
+  const SIDEBAR_WIDTH = Math.max(288, Math.min(340, screenWidth * 0.72));
 
   const [mounted, setMounted] = useState(visible);
   const translateX = useSharedValue(-SIDEBAR_WIDTH);
@@ -145,7 +149,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderTopRightRadius: 32,
     borderBottomRightRadius: 32,
-    paddingHorizontal: 18,
+    paddingHorizontal: 14,
     paddingTop: 22,
     paddingBottom: 16,
     shadowColor: "#000",
@@ -182,7 +186,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    gap: 12,
+    gap: 10,
     paddingBottom: 20,
   },
 });

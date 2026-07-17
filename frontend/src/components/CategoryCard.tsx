@@ -30,12 +30,16 @@ export default function CategoryCard({
       style={[styles.card, selected && styles.cardSelected]}
     >
       <View style={[styles.iconWrap, { backgroundColor: iconBg }]}>
-        <MaterialCommunityIcons name={iconName} size={26} color={iconColor} />
+        <MaterialCommunityIcons name={iconName} size={22} color={iconColor} />
       </View>
 
       <View style={styles.textWrap}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
+        <Text style={styles.title} numberOfLines={2}>
+          {title}
+        </Text>
+        <Text style={styles.subtitle} numberOfLines={2}>
+          {subtitle}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -46,9 +50,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#ffffff",
-    borderRadius: 22,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+    borderRadius: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
     borderWidth: 1.5,
     borderColor: "#f2ede4",
   },
@@ -57,24 +61,24 @@ const styles = StyleSheet.create({
     backgroundColor: "#faf5eb",
   },
   iconWrap: {
-    width: 52,
-    height: 52,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 14,
+    marginRight: 12,
   },
   textWrap: {
     flex: 1,
   },
   title: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "600",
     color: "#5a4b3c",
     marginBottom: 2,
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: "#a99a86",
   },
 });
