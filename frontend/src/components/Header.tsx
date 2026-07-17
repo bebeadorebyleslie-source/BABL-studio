@@ -1,11 +1,20 @@
 import { View, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-export default function Header() {
+type Props = {
+  onMenuPress?: () => void;
+  onFavoritesPress?: () => void;
+};
+
+export default function Header({ onMenuPress, onFavoritesPress }: Props) {
   return (
     <View style={styles.header}>
       {/* Menu hamburger */}
-      <TouchableOpacity style={styles.menuButton}>
+      <TouchableOpacity
+        testID="header-menu-button"
+        style={styles.menuButton}
+        onPress={onMenuPress}
+      >
         <Ionicons name="menu" size={28} color="#5a4b3c" />
       </TouchableOpacity>
 
@@ -17,7 +26,11 @@ export default function Header() {
       />
 
       {/* Icône favoris */}
-      <TouchableOpacity style={styles.favoritesButton}>
+      <TouchableOpacity
+        testID="header-favorites-button"
+        style={styles.favoritesButton}
+        onPress={onFavoritesPress}
+      >
         <Ionicons name="heart-outline" size={24} color="#5a4b3c" />
       </TouchableOpacity>
     </View>

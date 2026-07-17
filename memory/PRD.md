@@ -47,8 +47,19 @@ BABL Studio est un configurateur premium mobile permettant aux parents de créer
 - Header premium (hamburger + logo + favoris)
 - Workspace préservé à l'identique
 
+### Sprint 2 — Sidebar (LIVRÉ)
+- Sidebar overlay avec animation slide fluide (280ms, cubic easing)
+- Backdrop flouté (expo-blur, intensity 18) — Workspace toujours visible
+- Largeur 80% de l'écran, coins arrondis à droite (32px)
+- 7 familles présentées en cartes premium (icône + titre + sous-titre) :
+  - Silicone ronde, Silicone hexagonale, Crochet
+  - Bois ronde, Bois hexagonale
+  - Formes, Lettres
+- État "sélectionné" avec bordure kaki + fond crème (aucune navigation encore)
+- Composants indépendants : `Sidebar.tsx`, `CategoryCard.tsx`, données `families.ts`
+- Zéro impact sur le Workspace / composition / proportions
+
 ## Sprints à venir
-- Sprint 2 : Sidebar (menu latéral gauche avec familles de produits)
 - Sprint 3 : Interface silicone ronde (éventail radial de 25 couleurs)
 - Sprint 4 : Interface silicone hexagonale (éventail spécifique)
 - Sprint 5 : Interface crochet (éventail plus petit)

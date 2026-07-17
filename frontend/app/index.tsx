@@ -1,33 +1,46 @@
+import { useState } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 
 import Header from "../src/components/Header";
 import Workspace from "../src/components/Workspace";
+import Sidebar from "../src/components/Sidebar";
 
 export default function Index() {
-  return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-      <StatusBar style="dark" />
-      
-      {/* Header premium */}
-      <Header />
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-      {/* Grande carte blanche contenant le Workspace */}
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.card} testID="workspace-card">
-          <Workspace />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+  return (
+    <View style={styles.root}>
+      <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+        <StatusBar style="dark" />
+
+        {/* Header premium */}
+        <Header onMenuPress={() => setSidebarOpen(true)} />
+
+        {/* Grande carte blanche contenant le Workspace */}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.card} testID="workspace-card">
+            <Workspace />
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+
+      {/* Sidebar (overlay indépendant, ne casse pas le Workspace) */}
+      <Sidebar visible={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: "#ece5d8",
+  },
   safeArea: {
     flex: 1,
     backgroundColor: "#ece5d8", // Fond beige
