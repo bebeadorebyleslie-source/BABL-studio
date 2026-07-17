@@ -1,12 +1,56 @@
+import { useMemo } from "react";
 import { View, Image, StyleSheet } from "react-native";
 import composition from "../data/composition";
 import { MM } from "../constants/sizes";
 
-export default function Workspace() {
+// === Dimensions naturelles (référence, ne jamais modifier) ===
+const CLIP_SIZE = 180;
+const TEMPLATE_WIDTH = 72;
+const TEMPLATE_HEIGHT = 620;
+const LOOP_SIZE = 140;
+const CLIP_TEMPLATE_OVERLAP = 18;
+const TEMPLATE_LOOP_OVERLAP = 8;
+const BEADS_TOP_PADDING = 18;
+
+// Hauteur totale naturelle de l'attache-tétine
+export const NATURAL_HEIGHT =
+  CLIP_SIZE + TEMPLATE_HEIGHT + LOOP_SIZE - CLIP_TEMPLATE_OVERLAP - TEMPLATE_LOOP_OVERLAP;
+export const NATURAL_WIDTH = CLIP_SIZE;
+
+type Props = {
+  availableWidth?: number;
+  availableHeight?: number;
+};
+
+export default function Workspace({ availableWidth, availableHeight }: Props) {
+  // Calcul du facteur d'échelle pour que toute l'attache reste visible
+  const scale = useMemo(() => {
+    const sH = availableHeight && availableHeight > 0 ? availableHeight / NATURAL_HEIGHT : 1;
+    const sW = availableWidth && availableWidth > 0 ? availableWidth / NATURAL_WIDTH : 1;
+    return Math.min(1, sH, sW);
+  }, [availableHeight, availableWidth]);
+
   return (
-    <View style={styles.workspace}>
-      <View style={styles.centerAxis}>
-        
+    <View
+      style={[
+        styles.workspace,
+        {
+          width: NATURAL_WIDTH * scale,
+          height: NATURAL_HEIGHT * scale,
+        },
+      ]}
+      testID="workspace"
+    >
+      <View
+        style={[
+          styles.centerAxis,
+          {
+            width: NATURAL_WIDTH,
+            height: NATURAL_HEIGHT,
+            transform: [{ scale }],
+          },
+        ]}
+      >
         {/* Clip */}
         <Image
           source={require("../../assets/images/clip.png")}
@@ -39,7 +83,6 @@ export default function Workspace() {
           style={styles.loop}
           resizeMode="contain"
         />
-        
       </View>
     </View>
   );
@@ -47,46 +90,42 @@ export default function Workspace() {
 
 const styles = StyleSheet.create({
   workspace: {
-    display: "flex",
     justifyContent: "center",
     alignItems: "center",
   },
   centerAxis: {
-    display: "flex",
     flexDirection: "column",
     alignItems: "center",
   },
   clip: {
-    width: 180,
-    height: 180,
+    width: CLIP_SIZE,
+    height: CLIP_SIZE,
   },
   template: {
-    width: 72,
-    height: 620,
+    width: TEMPLATE_WIDTH,
+    height: TEMPLATE_HEIGHT,
     borderWidth: 2,
     borderColor: "#d4a574",
     borderRadius: 20,
     backgroundColor: "white",
-    display: "flex",
     justifyContent: "flex-start",
     alignItems: "center",
-    marginTop: -18,
+    marginTop: -CLIP_TEMPLATE_OVERLAP,
   },
   beadsStack: {
     width: "100%",
-    display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    paddingTop: 18,
+    paddingTop: BEADS_TOP_PADDING,
   },
   bead: {
-    borderRadius: 1000, // Très grand pour garantir un cercle parfait
+    borderRadius: 1000,
     borderWidth: 2,
     borderColor: "white",
   },
   loop: {
-    width: 140,
-    height: 140,
-    marginTop: -8,
+    width: LOOP_SIZE,
+    height: LOOP_SIZE,
+    marginTop: -TEMPLATE_LOOP_OVERLAP,
   },
 });

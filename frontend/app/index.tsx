@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 
@@ -9,6 +9,7 @@ import Sidebar from "../src/components/Sidebar";
 
 export default function Index() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [cardSize, setCardSize] = useState<{ width: number; height: number } | null>(null);
 
   return (
     <View style={styles.root}>
@@ -18,19 +19,27 @@ export default function Index() {
         {/* Header premium */}
         <Header onMenuPress={() => setSidebarOpen(true)} />
 
-        {/* Grande carte blanche contenant le Workspace */}
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.card} testID="workspace-card">
-            <Workspace />
+        {/* Grande carte blanche contenant le Workspace (pas de scroll, tout visible) */}
+        <View style={styles.cardWrap}>
+          <View
+            style={styles.card}
+            testID="workspace-card"
+            onLayout={(e) => {
+              const { width, height } = e.nativeEvent.layout;
+              setCardSize({ width, height });
+            }}
+          >
+            {cardSize && (
+              <Workspace
+                availableWidth={cardSize.width - 32} // paddingHorizontal
+                availableHeight={cardSize.height - 40} // paddingVertical
+              />
+            )}
           </View>
-        </ScrollView>
+        </View>
       </SafeAreaView>
 
-      {/* Sidebar (overlay indépendant, ne casse pas le Workspace) */}
+      {/* Sidebar (overlay indépendant) */}
       <Sidebar visible={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </View>
   );
@@ -43,23 +52,23 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-    backgroundColor: "#ece5d8", // Fond beige
+    backgroundColor: "#ece5d8",
   },
-  scrollView: {
+  cardWrap: {
     flex: 1,
-  },
-  scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 8,
-    paddingBottom: 32,
-    alignItems: "center",
+    paddingBottom: 16,
   },
   card: {
+    flex: 1,
     width: "100%",
     backgroundColor: "#ffffff",
     borderRadius: 32,
-    paddingVertical: 32,
+    paddingVertical: 20,
     paddingHorizontal: 16,
+    justifyContent: "center",
+    alignItems: "center",
     // Ombre très douce (iOS)
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },

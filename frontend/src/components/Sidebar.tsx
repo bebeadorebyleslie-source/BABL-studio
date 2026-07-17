@@ -5,7 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Dimensions,
+  useWindowDimensions,
   Pressable,
 } from "react-native";
 import Animated, {
@@ -20,15 +20,15 @@ import { Ionicons } from "@expo/vector-icons";
 import CategoryCard from "./CategoryCard";
 import { FAMILIES } from "../data/families";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const SIDEBAR_WIDTH = SCREEN_WIDTH * 0.8;
-
 type Props = {
   visible: boolean;
   onClose: () => void;
 };
 
 export default function Sidebar({ visible, onClose }: Props) {
+  const { width: screenWidth } = useWindowDimensions();
+  const SIDEBAR_WIDTH = Math.min(320, screenWidth * 0.62);
+
   const [mounted, setMounted] = useState(visible);
   const translateX = useSharedValue(-SIDEBAR_WIDTH);
   const backdropOpacity = useSharedValue(0);
@@ -83,7 +83,7 @@ export default function Sidebar({ visible, onClose }: Props) {
       </Animated.View>
 
       {/* Panneau Sidebar */}
-      <Animated.View style={[styles.panel, panelStyle]} testID="sidebar-panel">
+      <Animated.View style={[styles.panel, { width: SIDEBAR_WIDTH }, panelStyle]} testID="sidebar-panel">
         <View style={styles.panelInner}>
           {/* Header du panneau */}
           <View style={styles.panelHeader}>
@@ -136,7 +136,6 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     left: 0,
-    width: SIDEBAR_WIDTH,
     paddingTop: 50,
     paddingBottom: 20,
     paddingLeft: 12,

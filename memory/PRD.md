@@ -50,14 +50,16 @@ BABL Studio est un configurateur premium mobile permettant aux parents de créer
 ### Sprint 2 — Sidebar (LIVRÉ)
 - Sidebar overlay avec animation slide fluide (280ms, cubic easing)
 - Backdrop flouté (expo-blur, intensity 18) — Workspace toujours visible
-- Largeur 80% de l'écran, coins arrondis à droite (32px)
-- 7 familles présentées en cartes premium (icône + titre + sous-titre) :
-  - Silicone ronde, Silicone hexagonale, Crochet
-  - Bois ronde, Bois hexagonale
-  - Formes, Lettres
+- Largeur 62% de l'écran (max 320px) — plus discrète pour laisser voir l'attache
+- 7 familles présentées en cartes premium (icône + titre + sous-titre)
 - État "sélectionné" avec bordure kaki + fond crème (aucune navigation encore)
 - Composants indépendants : `Sidebar.tsx`, `CategoryCard.tsx`, données `families.ts`
 - Zéro impact sur le Workspace / composition / proportions
+
+### Sprint 2.1 — Ergonomie (LIVRÉ)
+- **Workspace auto-scale** : mise à l'échelle automatique via `transform: scale` calculé à partir de `onLayout` de la carte (`availableWidth` / `availableHeight`). L'attache-tétine complète est toujours visible, sans scroll, quelle que soit la longueur de la composition future.
+- **Dimensions naturelles exportées** depuis `Workspace.tsx` (NATURAL_HEIGHT = 914px, NATURAL_WIDTH = 180px)
+- **Sidebar plus discrète** : largeur passée de 80% à 62% (max 320px) — usage de `useWindowDimensions` pour réactivité
 
 ## Sprints à venir
 - Sprint 3 : Interface silicone ronde (éventail radial de 25 couleurs)
