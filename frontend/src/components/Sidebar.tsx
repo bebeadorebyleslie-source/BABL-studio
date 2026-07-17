@@ -74,7 +74,7 @@ export default function Sidebar({ visible, onClose }: Props) {
   if (!mounted) return null;
 
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="box-none" testID="sidebar-overlay">
+    <View style={[StyleSheet.absoluteFill, { pointerEvents: "box-none" }]} testID="sidebar-overlay">
       {/* Backdrop flouté */}
       <Animated.View style={[StyleSheet.absoluteFill, backdropStyle]}>
         <BlurView intensity={18} tint="light" style={StyleSheet.absoluteFill}>
