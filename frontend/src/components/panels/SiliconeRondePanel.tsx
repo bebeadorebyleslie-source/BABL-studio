@@ -21,6 +21,8 @@ import {
   SILICONE_RONDE_SIZES,
   SiliconeRondeSize,
 } from "../../data/silicone-ronde-colors";
+import { MM } from "../../constants/sizes";
+import { TEMPLATE_INNER_HEIGHT_PX } from "../Workspace";
 
 // === Géométrie de l'éventail ===
 // 25 perles en 2 arcs concentriques semi-circulaires (ouverts vers le haut)
@@ -38,11 +40,23 @@ const PANEL_HEIGHT = 490;
 
 type Props = {
   visible: boolean;
+  mode?: "add" | "replace";
+  currentLengthPx?: number; // longueur totale actuelle des perles (px)
+  excludeBeadSizePx?: number; // en mode replace, taille de la perle à remplacer (à exclure du calcul)
   onClose: () => void;
   onAddBead: (colorId: string, size: SiliconeRondeSize) => void;
+  onReplaceBead?: (colorId: string, size: SiliconeRondeSize) => void;
 };
 
-export default function SiliconeRondePanel({ visible, onClose, onAddBead }: Props) {
+export default function SiliconeRondePanel({
+  visible,
+  mode = "add",
+  currentLengthPx = 0,
+  excludeBeadSizePx = 0,
+  onClose,
+  onAddBead,
+  onReplaceBead,
+}: Props) {
   const [mounted, setMounted] = useState(visible);
   const [selectedColorId, setSelectedColorId] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<SiliconeRondeSize>(15);
@@ -80,6 +94,13 @@ export default function SiliconeRondePanel({ visible, onClose, onAddBead }: Prop
     () => SILICONE_RONDE_COLORS.find((c) => c.id === selectedColorId) ?? null,
     [selectedColorId],
   );
+
+  // Vérification de la contrainte de longueur maximale du gabarit
+  const effectiveCurrentLength = currentLengthPx - excludeBeadSizePx;
+  const remainingPx = TEMPLATE_INNER_HEIGHT_PX - effectiveCurrentLength;
+  const willFit = selectedSize * MM <= remainingPx;
+  const remainingMm = Math.max(0, remainingPx / MM);
+  const isReplaceMode = mode === "replace";
 
   const beadPos = (index: number, total: number, radius: number) => {
     const stepAngleDeg = 180 / (total - 1);
@@ -122,9 +143,15 @@ export default function SiliconeRondePanel({ visible, onClose, onAddBead }: Prop
         {/* En-tête */}
         <View style={styles.header}>
           <View style={styles.headerText}>
-            <Text style={styles.title}>Silicone ronde</Text>
+            <Text style={styles.title}>
+              {isReplaceMode ? "Remplacer la perle" : "Silicone ronde"}
+            </Text>
             <Text style={styles.subtitle}>
-              {selectedColor ? selectedColor.name : "Choisissez une couleur"}
+              {selectedColor
+                ? selectedColor.name
+                : isReplaceMode
+                  ? "Choisissez une nouvelle couleur"
+                  : "Choisissez une couleur"}
             </Text>
           </View>
           <TouchableOpacity
@@ -183,31 +210,45 @@ export default function SiliconeRondePanel({ visible, onClose, onAddBead }: Prop
           </View>
         </View>
 
-        {/* Bouton Ajouter */}
+        {/* Bouton d'action (Ajouter / Remplacer) */}
         <TouchableOpacity
-          testID="silicone-ronde-add-button"
-          disabled={!selectedColorId}
+          testID={isReplaceMode ? "silicone-ronde-replace-button" : "silicone-ronde-add-button"}
+          disabled={!selectedColorId || (!isReplaceMode && !willFit)}
           activeOpacity={0.85}
-          style={[styles.addBtn, !selectedColorId && styles.addBtnDisabled]}
+          style={[
+            styles.addBtn,
+            (!selectedColorId || (!isReplaceMode && !willFit)) && styles.addBtnDisabled,
+          ]}
           onPress={() => {
-            if (selectedColorId) {
+            if (!selectedColorId) return;
+            if (isReplaceMode && onReplaceBead) {
+              onReplaceBead(selectedColorId, selectedSize);
+            } else if (!isReplaceMode && willFit) {
               onAddBead(selectedColorId, selectedSize);
               setSelectedColorId(null);
             }
           }}
         >
           <Ionicons
-            name="add"
+            name={isReplaceMode ? "swap-horizontal" : "add"}
             size={20}
-            color={selectedColorId ? "#ffffff" : "#c0b5a2"}
+            color={
+              !selectedColorId || (!isReplaceMode && !willFit)
+                ? "#c0b5a2"
+                : "#ffffff"
+            }
           />
           <Text
             style={[
               styles.addBtnText,
-              !selectedColorId && styles.addBtnTextDisabled,
+              (!selectedColorId || (!isReplaceMode && !willFit)) && styles.addBtnTextDisabled,
             ]}
           >
-            Ajouter à mon attache
+            {isReplaceMode
+              ? "Remplacer"
+              : !willFit && selectedColorId
+                ? `Plus de place (reste ${Math.floor(remainingMm)} mm)`
+                : "Ajouter à mon attache"}
           </Text>
         </TouchableOpacity>
       </Animated.View>

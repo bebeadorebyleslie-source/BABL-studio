@@ -88,8 +88,37 @@ BABL Studio est un configurateur premium mobile permettant aux parents de créer
 - État de la composition géré dans `index.tsx` (`useState<CompositionBead[]>`)
 - **20 noms de couleurs mis à jour** : Blanc, Poussière d'étoile, Marbre, Givre, Gris clair, Gris foncé, Argan, Bronze, Vert d'eau, Menthe, Vert tropicale, Kaki, Kaki clair, Jaune pâle, Moutarde, Ocre, Chocolat, Brume bleu, Saphir, Glycine, Orchidée, Rose quartz, Pêche, Terracotta, Rouge sombre
 
+### Sprint 5 — Sélection / Remplacer / Supprimer + Contrainte de longueur (LIVRÉ)
+- **Recrop tight des 25 PNG** de silicone ronde (padding 0) → les perles s'empilent parfaitement sans gap visuel
+- **Workspace** :
+  - `paddingTop: 0` → la première perle touche parfaitement le haut du gabarit
+  - Beads collées via `flexDirection: column` sans gap
+  - Chaque perle devient **Pressable** avec callback `onBeadPress(beadId)`
+  - Anneau de sélection kaki `beadSelectedRing` apparaît quand une perle est sélectionnée
+  - Exports : `TEMPLATE_INNER_HEIGHT_PX = 616` et `TEMPLATE_INNER_HEIGHT_MM = 154`
+- **Menu contextuel** (`BeadActionMenu.tsx`) :
+  - Bottom-sheet compact 240px avec handle drag
+  - Aperçu de la perle (thumb PNG + nom + taille)
+  - Bouton "Remplacer" (crème) + bouton "Supprimer" (rouge)
+  - Fermeture par tap backdrop
+- **Panneau Silicone ronde en mode replace** :
+  - Nouvelle prop `mode: "add" | "replace"` + `currentLengthPx` + `excludeBeadSizePx`
+  - Titre "Remplacer la perle" au lieu de "Silicone ronde"
+  - Bouton "Remplacer" au lieu de "Ajouter"
+  - Callback `onReplaceBead(colorId, size)`
+- **Contrainte de longueur** :
+  - Calcul `remainingPx = TEMPLATE_INNER_HEIGHT_PX - currentLength (+ exclusion en mode replace)`
+  - Si perle sélectionnée ne rentre pas : bouton désactivé avec label "Plus de place (reste X mm)"
+  - L'utilisateur doit alors retirer une perle, ou basculer sur 12 mm si ça passe
+- **index.tsx** :
+  - Compositions : `family`, `colorId`, `size`, `image` désormais stockés dans chaque perle
+  - État `selectedBeadId` géré au niveau parent
+  - Menu contextuel s'ouvre au tap sur une perle du workspace
+  - "Remplacer" → réouvre le panneau de la bonne famille en mode replace
+  - "Supprimer" → retire la perle de la composition
+
 ## Sprints à venir
-- Sprint 5 : Sélection d'une perle dans la composition (tap → menu Remplacer / Supprimer)
+- Sprint 6 : Interface silicone hexagonale (éventail spécifique)
 - Sprint 4 : Interface silicone hexagonale (éventail spécifique)
 - Sprint 5 : Interface crochet (éventail plus petit)
 - Sprint 6 : Interface formes bois (galerie)
