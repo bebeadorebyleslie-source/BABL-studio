@@ -61,8 +61,26 @@ BABL Studio est un configurateur premium mobile permettant aux parents de créer
 - **Dimensions naturelles exportées** depuis `Workspace.tsx` (NATURAL_HEIGHT = 914px, NATURAL_WIDTH = 180px)
 - **Sidebar plus discrète** : largeur passée de 80% à 62% (max 320px) — usage de `useWindowDimensions` pour réactivité
 
+### Sprint 3 — Panneau Silicone ronde (LIVRÉ)
+- Bottom-sheet slide up depuis le bas (320ms cubic-out) avec backdrop très léger (18% opacity)
+- Handle drag visuel en haut du panneau
+- Titre "Silicone ronde" + sous-titre dynamique ("Choisissez une couleur" → nom de la couleur sélectionnée)
+- Bouton fermer (X) + tap sur backdrop
+- **25 perles en éventail radial** disposées en 2 arcs concentriques semi-circulaires :
+  - Arc intérieur : 10 perles à R=100px
+  - Arc extérieur : 15 perles à R=155px
+  - Perles de 30px, espacement ~4-5px sur l'arc
+  - Fan center = point virtuel bas (comme une poignée d'éventail)
+- **Interaction perle** :
+  - Tap → agrandissement spring (scale 1 → 1.18) + halo kaki (bordure animée)
+  - Sélection exclusive (une seule perle à la fois)
+  - **Aucune perle n'est ajoutée à la composition** (Sprint 3 = validation uniquement)
+- **Le Workspace reste toujours visible** en haut (clip, gabarit, perles, boucle)
+- Composants : `panels/SiliconeRondePanel.tsx`, `panels/FanBead.tsx` réutilisable
+- Palette temporaire : `data/silicone-ronde-colors.ts` (25 couleurs pastel, à remplacer par les vrais PNG)
+
 ## Sprints à venir
-- Sprint 3 : Interface silicone ronde (éventail radial de 25 couleurs)
+- Sprint 4 : Interface silicone hexagonale (éventail spécifique)
 - Sprint 4 : Interface silicone hexagonale (éventail spécifique)
 - Sprint 5 : Interface crochet (éventail plus petit)
 - Sprint 6 : Interface formes bois (galerie)

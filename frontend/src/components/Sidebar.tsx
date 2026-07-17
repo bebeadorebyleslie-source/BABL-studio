@@ -23,9 +23,10 @@ import { FAMILIES } from "../data/families";
 type Props = {
   visible: boolean;
   onClose: () => void;
+  onFamilyOpen?: (familyId: string) => void;
 };
 
-export default function Sidebar({ visible, onClose }: Props) {
+export default function Sidebar({ visible, onClose, onFamilyOpen }: Props) {
   const { width: screenWidth } = useWindowDimensions();
   // Largeur bien proportionnée :
   // - minimum 288px (garantit la lisibilité des titres même sur iPhone SE 375px)
@@ -121,7 +122,10 @@ export default function Sidebar({ visible, onClose }: Props) {
                 iconColor={f.iconColor}
                 iconBg={f.iconBg}
                 selected={selectedId === f.id}
-                onPress={() => setSelectedId(f.id)}
+                onPress={() => {
+                  setSelectedId(f.id);
+                  onFamilyOpen?.(f.id);
+                }}
               />
             ))}
           </ScrollView>

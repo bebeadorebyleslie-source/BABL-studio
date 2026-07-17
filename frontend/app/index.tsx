@@ -6,10 +6,20 @@ import { StatusBar } from "expo-status-bar";
 import Header from "../src/components/Header";
 import Workspace from "../src/components/Workspace";
 import Sidebar from "../src/components/Sidebar";
+import SiliconeRondePanel from "../src/components/panels/SiliconeRondePanel";
 
 export default function Index() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activePanel, setActivePanel] = useState<string | null>(null);
   const [cardSize, setCardSize] = useState<{ width: number; height: number } | null>(null);
+
+  const handleFamilyOpen = (familyId: string) => {
+    if (familyId === "silicone-ronde") {
+      setSidebarOpen(false);
+      setActivePanel("silicone-ronde");
+    }
+    // Les autres familles arriveront dans les sprints suivants
+  };
 
   return (
     <View style={styles.root}>
@@ -40,7 +50,17 @@ export default function Index() {
       </SafeAreaView>
 
       {/* Sidebar (overlay indépendant) */}
-      <Sidebar visible={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar
+        visible={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        onFamilyOpen={handleFamilyOpen}
+      />
+
+      {/* Panneau Silicone ronde (bottom-sheet) */}
+      <SiliconeRondePanel
+        visible={activePanel === "silicone-ronde"}
+        onClose={() => setActivePanel(null)}
+      />
     </View>
   );
 }
