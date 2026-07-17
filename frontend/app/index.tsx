@@ -4,21 +4,39 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 
 import Header from "../src/components/Header";
-import Workspace from "../src/components/Workspace";
+import Workspace, { CompositionBead } from "../src/components/Workspace";
 import Sidebar from "../src/components/Sidebar";
 import SiliconeRondePanel from "../src/components/panels/SiliconeRondePanel";
+
+import initialComposition from "../src/data/composition";
+import {
+  SILICONE_RONDE_COLORS,
+  SiliconeRondeSize,
+} from "../src/data/silicone-ronde-colors";
 
 export default function Index() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activePanel, setActivePanel] = useState<string | null>(null);
   const [cardSize, setCardSize] = useState<{ width: number; height: number } | null>(null);
+  const [composition, setComposition] = useState<CompositionBead[]>(initialComposition);
 
   const handleFamilyOpen = (familyId: string) => {
     if (familyId === "silicone-ronde") {
       setSidebarOpen(false);
       setActivePanel("silicone-ronde");
     }
-    // Les autres familles arriveront dans les sprints suivants
+  };
+
+  const handleAddSiliconeRonde = (colorId: string, size: SiliconeRondeSize) => {
+    const color = SILICONE_RONDE_COLORS.find((c) => c.id === colorId);
+    if (!color) return;
+    const newBead: CompositionBead = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      type: "silicone",
+      size,
+      image: color.image,
+    };
+    setComposition((prev) => [...prev, newBead]);
   };
 
   return (
@@ -26,10 +44,8 @@ export default function Index() {
       <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
         <StatusBar style="dark" />
 
-        {/* Header premium */}
         <Header onMenuPress={() => setSidebarOpen(true)} />
 
-        {/* Grande carte blanche contenant le Workspace (pas de scroll, tout visible) */}
         <View style={styles.cardWrap}>
           <View
             style={styles.card}
@@ -41,25 +57,25 @@ export default function Index() {
           >
             {cardSize && (
               <Workspace
-                availableWidth={cardSize.width - 32} // paddingHorizontal
-                availableHeight={cardSize.height - 40} // paddingVertical
+                composition={composition}
+                availableWidth={cardSize.width - 32}
+                availableHeight={cardSize.height - 40}
               />
             )}
           </View>
         </View>
       </SafeAreaView>
 
-      {/* Sidebar (overlay indépendant) */}
       <Sidebar
         visible={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         onFamilyOpen={handleFamilyOpen}
       />
 
-      {/* Panneau Silicone ronde (bottom-sheet) */}
       <SiliconeRondePanel
         visible={activePanel === "silicone-ronde"}
         onClose={() => setActivePanel(null)}
+        onAddBead={handleAddSiliconeRonde}
       />
     </View>
   );
@@ -89,12 +105,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     justifyContent: "center",
     alignItems: "center",
-    // Ombre très douce (iOS)
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.06,
     shadowRadius: 24,
-    // Ombre très douce (Android)
     elevation: 3,
   },
 });

@@ -34,14 +34,15 @@ const FAN_HEIGHT = R_OUTER + BEAD_VISUAL + 10;
 const CX = FAN_WIDTH / 2;
 const CY = FAN_HEIGHT - 15;
 
-const PANEL_HEIGHT = 440;
+const PANEL_HEIGHT = 490;
 
 type Props = {
   visible: boolean;
   onClose: () => void;
+  onAddBead: (colorId: string, size: SiliconeRondeSize) => void;
 };
 
-export default function SiliconeRondePanel({ visible, onClose }: Props) {
+export default function SiliconeRondePanel({ visible, onClose, onAddBead }: Props) {
   const [mounted, setMounted] = useState(visible);
   const [selectedColorId, setSelectedColorId] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<SiliconeRondeSize>(15);
@@ -181,6 +182,34 @@ export default function SiliconeRondePanel({ visible, onClose }: Props) {
             })}
           </View>
         </View>
+
+        {/* Bouton Ajouter */}
+        <TouchableOpacity
+          testID="silicone-ronde-add-button"
+          disabled={!selectedColorId}
+          activeOpacity={0.85}
+          style={[styles.addBtn, !selectedColorId && styles.addBtnDisabled]}
+          onPress={() => {
+            if (selectedColorId) {
+              onAddBead(selectedColorId, selectedSize);
+              setSelectedColorId(null);
+            }
+          }}
+        >
+          <Ionicons
+            name="add"
+            size={20}
+            color={selectedColorId ? "#ffffff" : "#c0b5a2"}
+          />
+          <Text
+            style={[
+              styles.addBtnText,
+              !selectedColorId && styles.addBtnTextDisabled,
+            ]}
+          >
+            Ajouter à mon attache
+          </Text>
+        </TouchableOpacity>
       </Animated.View>
     </View>
   );
@@ -255,5 +284,34 @@ const styles = StyleSheet.create({
   },
   fan: {
     position: "relative",
+  },
+  addBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#5a4b3c",
+    borderRadius: 999,
+    paddingVertical: 14,
+    paddingHorizontal: 22,
+    marginTop: 10,
+    gap: 8,
+    shadowColor: "#5a4b3c",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  addBtnDisabled: {
+    backgroundColor: "#f0e9dc",
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  addBtnText: {
+    color: "#ffffff",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  addBtnTextDisabled: {
+    color: "#c0b5a2",
   },
 });

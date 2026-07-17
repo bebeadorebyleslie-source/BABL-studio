@@ -77,8 +77,19 @@ BABL Studio est un configurateur premium mobile permettant aux parents de créer
 - Composants : `panels/SiliconeRondePanel.tsx`, `panels/FanBead.tsx`, `SizeToggle.tsx`
 - Données : `data/silicone-ronde-colors.ts` (nom + require d'image), `SILICONE_RONDE_SIZES = [12, 15]`
 
+### Sprint 4 — Ajout à la composition (LIVRÉ)
+- **Composition vide au démarrage** : `data/composition.js` exporte `[]` (gabarit prêt à accueillir les perles une à une)
+- **Workspace passe désormais `composition` en prop** (au lieu d'import statique) → l'attache se met à jour en temps réel
+- Workspace accepte perles avec `image` (PNG) ou `color` (rétrocompatible)
+- **Bouton "Ajouter à mon attache"** en bas du panneau Silicone ronde :
+  - Désactivé (fond crème, icône grise) tant qu'aucune couleur n'est sélectionnée
+  - Activé (fond kaki foncé #5a4b3c, texte blanc, ombre) dès qu'une couleur est choisie
+  - Clic → ajoute la perle à la composition avec la taille (12 ou 15 mm) et l'image PNG, puis désélectionne pour la perle suivante
+- État de la composition géré dans `index.tsx` (`useState<CompositionBead[]>`)
+- **20 noms de couleurs mis à jour** : Blanc, Poussière d'étoile, Marbre, Givre, Gris clair, Gris foncé, Argan, Bronze, Vert d'eau, Menthe, Vert tropicale, Kaki, Kaki clair, Jaune pâle, Moutarde, Ocre, Chocolat, Brume bleu, Saphir, Glycine, Orchidée, Rose quartz, Pêche, Terracotta, Rouge sombre
+
 ## Sprints à venir
-- Sprint 4 : Interface silicone hexagonale (éventail spécifique)
+- Sprint 5 : Sélection d'une perle dans la composition (tap → menu Remplacer / Supprimer)
 - Sprint 4 : Interface silicone hexagonale (éventail spécifique)
 - Sprint 5 : Interface crochet (éventail plus petit)
 - Sprint 6 : Interface formes bois (galerie)
