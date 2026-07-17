@@ -15,22 +15,26 @@ import Animated, {
 import { Ionicons } from "@expo/vector-icons";
 
 import FanBead from "./FanBead";
-import { SILICONE_RONDE_COLORS } from "../../data/silicone-ronde-colors";
+import SizeToggle from "../SizeToggle";
+import {
+  SILICONE_RONDE_COLORS,
+  SILICONE_RONDE_SIZES,
+  SiliconeRondeSize,
+} from "../../data/silicone-ronde-colors";
 
 // === Géométrie de l'éventail ===
 // 25 perles en 2 arcs concentriques semi-circulaires (ouverts vers le haut)
 // - Arc intérieur : 10 perles, rayon 100
 // - Arc extérieur : 15 perles, rayon 155
-// Bord des perles : 30px. Espacement calculé pour rester ~4-5px entre perles.
 const R_INNER = 100;
 const R_OUTER = 155;
-const BEAD = 30;
-const FAN_WIDTH = 2 * R_OUTER + BEAD + 20; // 350
-const FAN_HEIGHT = R_OUTER + BEAD + 10; // 195
+const BEAD_VISUAL = 34;
+const FAN_WIDTH = 2 * R_OUTER + BEAD_VISUAL + 20;
+const FAN_HEIGHT = R_OUTER + BEAD_VISUAL + 10;
 const CX = FAN_WIDTH / 2;
-const CY = FAN_HEIGHT - 15; // centre virtuel en bas (poignée de l'éventail)
+const CY = FAN_HEIGHT - 15;
 
-const PANEL_HEIGHT = 420;
+const PANEL_HEIGHT = 440;
 
 type Props = {
   visible: boolean;
@@ -40,6 +44,7 @@ type Props = {
 export default function SiliconeRondePanel({ visible, onClose }: Props) {
   const [mounted, setMounted] = useState(visible);
   const [selectedColorId, setSelectedColorId] = useState<string | null>(null);
+  const [selectedSize, setSelectedSize] = useState<SiliconeRondeSize>(15);
 
   const translateY = useSharedValue(PANEL_HEIGHT);
   const backdropOpacity = useSharedValue(0);
@@ -75,10 +80,9 @@ export default function SiliconeRondePanel({ visible, onClose }: Props) {
     [selectedColorId],
   );
 
-  // Position d'une perle sur un arc semi-circulaire ouvert vers le haut
   const beadPos = (index: number, total: number, radius: number) => {
     const stepAngleDeg = 180 / (total - 1);
-    const angleDeg = -90 + index * stepAngleDeg; // -90 = gauche, 0 = haut, +90 = droite
+    const angleDeg = -90 + index * stepAngleDeg;
     const angleRad = (angleDeg * Math.PI) / 180;
     return {
       x: CX + radius * Math.sin(angleRad),
@@ -96,7 +100,7 @@ export default function SiliconeRondePanel({ visible, onClose }: Props) {
       style={[StyleSheet.absoluteFill, { pointerEvents: "box-none" }]}
       testID="silicone-ronde-overlay"
     >
-      {/* Backdrop subtil (Workspace reste très visible) */}
+      {/* Backdrop subtil */}
       <Animated.View
         style={[StyleSheet.absoluteFill, styles.backdropBase, backdropStyle]}
       >
@@ -112,7 +116,6 @@ export default function SiliconeRondePanel({ visible, onClose }: Props) {
         style={[styles.panel, { height: PANEL_HEIGHT }, panelStyle]}
         testID="silicone-ronde-panel"
       >
-        {/* Handle drag */}
         <View style={styles.handleBar} />
 
         {/* En-tête */}
@@ -132,20 +135,29 @@ export default function SiliconeRondePanel({ visible, onClose }: Props) {
           </TouchableOpacity>
         </View>
 
+        {/* Sélecteur de taille 12mm / 15mm */}
+        <View style={styles.sizeRow}>
+          <SizeToggle
+            testID="silicone-ronde-size"
+            options={SILICONE_RONDE_SIZES}
+            value={selectedSize}
+            onChange={setSelectedSize}
+          />
+        </View>
+
         {/* Éventail des 25 perles */}
         <View style={styles.fanWrap}>
           <View
             style={[styles.fan, { width: FAN_WIDTH, height: FAN_HEIGHT }]}
             testID="silicone-ronde-fan"
           >
-            {/* Arc extérieur (15 perles) */}
             {outerBeads.map((c, i) => {
               const { x, y } = beadPos(i, outerBeads.length, R_OUTER);
               return (
                 <FanBead
                   key={c.id}
                   testID={`bead-${c.id}`}
-                  color={c.hex}
+                  image={c.image}
                   x={x}
                   y={y}
                   selected={selectedColorId === c.id}
@@ -153,14 +165,13 @@ export default function SiliconeRondePanel({ visible, onClose }: Props) {
                 />
               );
             })}
-            {/* Arc intérieur (10 perles) */}
             {innerBeads.map((c, i) => {
               const { x, y } = beadPos(i, innerBeads.length, R_INNER);
               return (
                 <FanBead
                   key={c.id}
                   testID={`bead-${c.id}`}
-                  color={c.hex}
+                  image={c.image}
                   x={x}
                   y={y}
                   selected={selectedColorId === c.id}
@@ -208,7 +219,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 8,
+    marginBottom: 10,
   },
   headerText: {
     flex: 1,
@@ -231,6 +242,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 8,
+  },
+  sizeRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    marginBottom: 4,
   },
   fanWrap: {
     flex: 1,

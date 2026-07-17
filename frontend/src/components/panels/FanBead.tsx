@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { StyleSheet, Pressable } from "react-native";
+import { StyleSheet, Pressable, Image, ImageSourcePropType } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -7,12 +7,12 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-export const BEAD_SIZE = 30;
-const HALO_EXTRA = 10;
-const HITAREA = 44;
+export const BEAD_SIZE = 34;
+const HALO_EXTRA = 12;
+const HITAREA = 46;
 
 type Props = {
-  color: string;
+  image: ImageSourcePropType;
   x: number;
   y: number;
   selected: boolean;
@@ -20,12 +20,12 @@ type Props = {
   testID?: string;
 };
 
-export default function FanBead({ color, x, y, selected, onPress, testID }: Props) {
+export default function FanBead({ image, x, y, selected, onPress, testID }: Props) {
   const scale = useSharedValue(1);
   const haloOpacity = useSharedValue(0);
 
   useEffect(() => {
-    scale.value = withSpring(selected ? 1.18 : 1, { damping: 12, stiffness: 220 });
+    scale.value = withSpring(selected ? 1.2 : 1, { damping: 12, stiffness: 220 });
     haloOpacity.value = withTiming(selected ? 1 : 0, { duration: 200 });
   }, [selected]);
 
@@ -61,19 +61,17 @@ export default function FanBead({ color, x, y, selected, onPress, testID }: Prop
           haloStyle,
         ]}
       />
-      {/* Perle */}
-      <Animated.View
-        style={[
-          styles.bead,
-          {
+      {/* Vraie perle PNG */}
+      <Animated.View style={beadStyle}>
+        <Image
+          source={image}
+          style={{
             width: BEAD_SIZE,
             height: BEAD_SIZE,
-            borderRadius: BEAD_SIZE / 2,
-            backgroundColor: color,
-          },
-          beadStyle,
-        ]}
-      />
+          }}
+          resizeMode="contain"
+        />
+      </Animated.View>
     </Pressable>
   );
 }
@@ -90,16 +88,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     borderWidth: 2,
     borderColor: "#d4a574",
-    backgroundColor: "rgba(212, 165, 116, 0.08)",
-  },
-  bead: {
-    borderWidth: 2,
-    borderColor: "#ffffff",
-    // Petite ombre pour donner un effet perle réelle
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
-    shadowRadius: 2,
-    elevation: 2,
+    backgroundColor: "rgba(212, 165, 116, 0.10)",
   },
 });

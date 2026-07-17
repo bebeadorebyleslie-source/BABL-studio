@@ -61,23 +61,21 @@ BABL Studio est un configurateur premium mobile permettant aux parents de créer
 - **Dimensions naturelles exportées** depuis `Workspace.tsx` (NATURAL_HEIGHT = 914px, NATURAL_WIDTH = 180px)
 - **Sidebar plus discrète** : largeur passée de 80% à 62% (max 320px) — usage de `useWindowDimensions` pour réactivité
 
-### Sprint 3 — Panneau Silicone ronde (LIVRÉ)
-- Bottom-sheet slide up depuis le bas (320ms cubic-out) avec backdrop très léger (18% opacity)
+### Sprint 3 — Panneau Silicone ronde (LIVRÉ + vraies images)
+- Bottom-sheet slide up depuis le bas (320ms cubic-out) avec backdrop très léger
 - Handle drag visuel en haut du panneau
-- Titre "Silicone ronde" + sous-titre dynamique ("Choisissez une couleur" → nom de la couleur sélectionnée)
+- Titre "Silicone ronde" + sous-titre dynamique (nom de la couleur sélectionnée)
 - Bouton fermer (X) + tap sur backdrop
-- **25 perles en éventail radial** disposées en 2 arcs concentriques semi-circulaires :
+- **Sélecteur de taille 12 mm / 15 mm** en pastille segmentée (composant `SizeToggle` réutilisable)
+- **25 perles réelles en PNG** disposées en 2 arcs concentriques :
   - Arc intérieur : 10 perles à R=100px
   - Arc extérieur : 15 perles à R=155px
-  - Perles de 30px, espacement ~4-5px sur l'arc
-  - Fan center = point virtuel bas (comme une poignée d'éventail)
-- **Interaction perle** :
-  - Tap → agrandissement spring (scale 1 → 1.18) + halo kaki (bordure animée)
-  - Sélection exclusive (une seule perle à la fois)
-  - **Aucune perle n'est ajoutée à la composition** (Sprint 3 = validation uniquement)
-- **Le Workspace reste toujours visible** en haut (clip, gabarit, perles, boucle)
-- Composants : `panels/SiliconeRondePanel.tsx`, `panels/FanBead.tsx` réutilisable
-- Palette temporaire : `data/silicone-ronde-colors.ts` (25 couleurs pastel, à remplacer par les vrais PNG)
+  - Perles de 34px, hit area 46px
+- **PNG individuels** extraits depuis le visuel produit → `/app/frontend/assets/images/silicone-ronde/sr-01.png` à `sr-25.png` (fond transparent conservé)
+- **Interaction perle** : tap → spring scale (1 → 1.2) + halo kaki animé + nom affiché
+- Sélection exclusive, **aucune perle n'est encore ajoutée à la composition**
+- Composants : `panels/SiliconeRondePanel.tsx`, `panels/FanBead.tsx`, `SizeToggle.tsx`
+- Données : `data/silicone-ronde-colors.ts` (nom + require d'image), `SILICONE_RONDE_SIZES = [12, 15]`
 
 ## Sprints à venir
 - Sprint 4 : Interface silicone hexagonale (éventail spécifique)
