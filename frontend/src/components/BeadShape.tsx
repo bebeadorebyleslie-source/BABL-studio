@@ -197,7 +197,17 @@ export default function BeadShape({
     }
   }
 
-  // === Crochet : SVG cercle avec texture "tricot" (petits points) ===
+  // === Crochet : PNG réel si dispo, sinon SVG texture "tricot" ===
+  if (material === "crochet" && shape === "ronde" && image) {
+    return (
+      <Image
+        source={image}
+        style={{ width: size, height: size }}
+        resizeMode="contain"
+      />
+    );
+  }
+
   if (material === "crochet" && shape === "ronde") {
     const light = shade(hex, 15);
     const dark = shade(hex, -30);

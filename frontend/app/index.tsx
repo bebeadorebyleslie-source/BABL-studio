@@ -158,6 +158,7 @@ export default function Index() {
         colorId: color.id,
         size: CROCHET_SIZE_MM,
         hex: color.hex,
+        image: color.image,
       },
     ]);
   };
@@ -178,7 +179,7 @@ export default function Index() {
               colorId: color.id,
               size: CROCHET_SIZE_MM,
               hex: color.hex,
-              image: undefined,
+              image: color.image,
             }
           : b,
       ),
@@ -209,6 +210,10 @@ export default function Index() {
   const previewName = (() => {
     if (!selectedBead) return undefined;
     if (selectedBead.family === PERLES_BOIS_ID) return WOOD_COLORS[0].name;
+    if (selectedBead.family === CROCHET_ID) {
+      const cc = CROCHET_COLORS.find((c) => c.id === selectedBead.colorId);
+      return cc?.name;
+    }
     const c = getColorById(selectedBead.colorId ?? "");
     return c?.name;
   })();

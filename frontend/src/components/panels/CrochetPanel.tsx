@@ -137,6 +137,7 @@ export default function CrochetPanel({
                   shape="ronde"
                   material="crochet"
                   hex={c.hex}
+                  image={c.image}
                   size={BEAD_VISUAL}
                   x={x}
                   y={y}
@@ -154,6 +155,7 @@ export default function CrochetPanel({
                   shape="ronde"
                   material="crochet"
                   hex={c.hex}
+                  image={c.image}
                   size={BEAD_VISUAL}
                   x={x}
                   y={y}
