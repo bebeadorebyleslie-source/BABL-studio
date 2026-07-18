@@ -7,13 +7,14 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-import BeadShape, { beadShapeDimensions } from "../BeadShape";
+import BeadShape, { beadShapeDimensions, BeadMaterial } from "../BeadShape";
 import type { SiliconeShape } from "../../data/silicone-colors";
 
 const HITAREA_MIN = 46;
 
 type Props = {
   shape: SiliconeShape;
+  material?: BeadMaterial;
   hex: string;
   image?: ImageSourcePropType;
   size: number; // Taille visuelle en px
@@ -26,6 +27,7 @@ type Props = {
 
 export default function FanBead({
   shape,
+  material,
   hex,
   image,
   size,
@@ -83,7 +85,7 @@ export default function FanBead({
       />
       {/* Perle avec sa vraie forme */}
       <Animated.View style={beadStyle}>
-        <BeadShape shape={shape} size={size} hex={hex} image={image} />
+        <BeadShape shape={shape} material={material} size={size} hex={hex} image={image} />
       </Animated.View>
     </Pressable>
   );

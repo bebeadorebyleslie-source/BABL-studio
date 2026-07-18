@@ -15,7 +15,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 
-import BeadShape from "./BeadShape";
+import BeadShape, { BeadMaterial } from "./BeadShape";
 import type { SiliconeShape } from "../data/silicone-colors";
 
 const PANEL_HEIGHT = 240;
@@ -26,6 +26,7 @@ type Props = {
     name?: string;
     size: number;
     shape?: SiliconeShape;
+    material?: BeadMaterial;
     image?: ImageSourcePropType;
     hex?: string;
   } | null;
@@ -99,6 +100,7 @@ export default function BeadActionMenu({
           <View style={styles.beadThumb}>
             <BeadShape
               shape={bead.shape ?? "ronde"}
+              material={bead.material}
               size={48}
               hex={bead.hex ?? "#ddd"}
               image={bead.image}

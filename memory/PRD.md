@@ -140,8 +140,36 @@ BABL Studio est un configurateur premium mobile permettant aux parents de créer
 - **Composition** : ajoute champs `shape`, `variantId`, `hex`
 - Ancien `SiliconeRondePanel.tsx`, `silicone-ronde-colors.ts`, `SizeToggle.tsx` supprimés
 
+### Sprint 6 — Perles en bois + Crochet + Réalisme silicone (LIVRÉ)
+**Sidebar consolidée** :
+- "Bois ronde" + "Bois hexagonale" → une seule catégorie "**Perles en bois**" (id `perles-bois`, sous-titre "Hêtre naturel, 5 formes")
+- "Crochet" : sous-titre mis à jour "16 mm, 14 couleurs"
+- 5 catégories restantes : Perles Silicone, Crochet, Perles en bois, Formes, Lettres
+
+**Panneau Perles en bois** (`PerlesBoisPanel.tsx`) :
+- **Grille de 5 tuiles** (pas d'éventail comme demandé) : Ronde 15, Ronde 12, Hexa 14, Hexa 10, Lentille 7
+- Halo kaki animé au tap
+- **Vraies textures bois de hêtre** extraites depuis la photo produit (`wd-ronde.png`, `wd-hexa.png`)
+- Lentille rendue en SVG (couleur bois + veines)
+
+**Panneau Crochet** (`CrochetPanel.tsx`) :
+- Éventail 14 couleurs en 2 arcs (6 + 8), taille fixe 16 mm
+- Rendu SVG texturé "tricot" : gradient radial + points nappe pour évoquer la maille
+- Couleurs alignées avec la palette silicone (mêmes ids, mêmes hex)
+
+**Réalisme silicone hexagones + lentilles** :
+- Refonte de `BeadShape.tsx` avec système `material` (silicone / bois / crochet)
+- Hexagones silicone : radial gradient (light → hex → dark) + highlight ellipse blanc
+- Lentilles silicone : radial gradient + highlight — aspect 3D/lustré convaincant
+
+**Data** :
+- `wood-beads.ts` : 5 variants, PNG pour ronde/hexa
+- `crochet-beads.ts` : 14 ids alignés sur silicone
+
+**Type `CompositionBead` étendu** : ajout du champ `material` (silicone / bois / crochet)
+
 ## Sprints à venir
-- Sprint 6 : Interface Crochet (éventail plus petit)
+- Sprint 7 : Interface Formes (galerie animaux, étoiles, nuages)
 - Sprint 4 : Interface silicone hexagonale (éventail spécifique)
 - Sprint 5 : Interface crochet (éventail plus petit)
 - Sprint 6 : Interface formes bois (galerie)

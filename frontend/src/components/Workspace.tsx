@@ -7,7 +7,7 @@ import {
   ImageSourcePropType,
 } from "react-native";
 import { MM } from "../constants/sizes";
-import BeadShape, { beadShapeDimensions } from "./BeadShape";
+import BeadShape, { beadShapeDimensions, BeadMaterial } from "./BeadShape";
 import type { SiliconeShape } from "../data/silicone-colors";
 
 // === Dimensions naturelles (référence, ne jamais modifier) ===
@@ -31,6 +31,7 @@ export type CompositionBead = {
   id: string;
   family: string;
   shape?: SiliconeShape;
+  material?: BeadMaterial;
   variantId?: string;
   colorId?: string;
   size: number; // mm
@@ -98,6 +99,7 @@ export default function Workspace({
                 >
                   <BeadShape
                     shape={shape}
+                    material={item.material}
                     size={px}
                     hex={item.hex ?? item.color ?? "#ddd"}
                     image={item.image}
