@@ -1,34 +1,37 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
-type Props<T extends number> = {
-  options: readonly T[];
+export type SegmentedOption<T extends string | number> = {
+  value: T;
+  label: string;
+};
+
+type Props<T extends string | number> = {
+  options: readonly SegmentedOption<T>[];
   value: T;
   onChange: (v: T) => void;
-  unit?: string;
   testID?: string;
 };
 
-export default function SizeToggle<T extends number>({
+export default function SegmentedToggle<T extends string | number>({
   options,
   value,
   onChange,
-  unit = "mm",
   testID,
 }: Props<T>) {
   return (
     <View style={styles.container} testID={testID}>
       {options.map((opt) => {
-        const active = opt === value;
+        const active = opt.value === value;
         return (
           <TouchableOpacity
-            key={String(opt)}
-            testID={`${testID ?? "size"}-${opt}`}
+            key={String(opt.value)}
+            testID={`${testID ?? "segment"}-${opt.value}`}
             style={[styles.pill, active && styles.pillActive]}
-            onPress={() => onChange(opt)}
+            onPress={() => onChange(opt.value)}
             activeOpacity={0.85}
           >
             <Text style={[styles.label, active && styles.labelActive]}>
-              {opt} {unit}
+              {opt.label}
             </Text>
           </TouchableOpacity>
         );
@@ -42,11 +45,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: "#f5efe4",
     borderRadius: 999,
-    padding: 4,
+    padding: 3,
   },
   pill: {
     paddingVertical: 6,
-    paddingHorizontal: 14,
+    paddingHorizontal: 10,
     borderRadius: 999,
   },
   pillActive: {
@@ -58,7 +61,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   label: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "500",
     color: "#a99a86",
   },

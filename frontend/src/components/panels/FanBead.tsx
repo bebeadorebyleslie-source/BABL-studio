@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { StyleSheet, Pressable, Image, ImageSourcePropType } from "react-native";
+import { StyleSheet, Pressable, ImageSourcePropType } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -7,12 +7,16 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-export const BEAD_SIZE = 34;
-const HALO_EXTRA = 12;
-const HITAREA = 46;
+import BeadShape, { beadShapeDimensions } from "../BeadShape";
+import type { SiliconeShape } from "../../data/silicone-colors";
+
+const HITAREA_MIN = 46;
 
 type Props = {
-  image: ImageSourcePropType;
+  shape: SiliconeShape;
+  hex: string;
+  image?: ImageSourcePropType;
+  size: number; // Taille visuelle en px
   x: number;
   y: number;
   selected: boolean;
@@ -20,7 +24,17 @@ type Props = {
   testID?: string;
 };
 
-export default function FanBead({ image, x, y, selected, onPress, testID }: Props) {
+export default function FanBead({
+  shape,
+  hex,
+  image,
+  size,
+  x,
+  y,
+  selected,
+  onPress,
+  testID,
+}: Props) {
   const scale = useSharedValue(1);
   const haloOpacity = useSharedValue(0);
 
@@ -36,6 +50,10 @@ export default function FanBead({ image, x, y, selected, onPress, testID }: Prop
     opacity: haloOpacity.value,
   }));
 
+  const { width: bw, height: bh } = beadShapeDimensions(shape, size);
+  const hitW = Math.max(HITAREA_MIN, bw);
+  const hitH = Math.max(HITAREA_MIN, bh);
+
   return (
     <Pressable
       testID={testID}
@@ -44,33 +62,28 @@ export default function FanBead({ image, x, y, selected, onPress, testID }: Prop
       style={[
         styles.hitArea,
         {
-          left: x - HITAREA / 2,
-          top: y - HITAREA / 2,
+          left: x - hitW / 2,
+          top: y - hitH / 2,
+          width: hitW,
+          height: hitH,
         },
       ]}
     >
-      {/* Halo autour de la perle sélectionnée */}
+      {/* Halo autour de la perle */}
       <Animated.View
         style={[
           styles.halo,
           {
-            width: BEAD_SIZE + HALO_EXTRA,
-            height: BEAD_SIZE + HALO_EXTRA,
-            borderRadius: (BEAD_SIZE + HALO_EXTRA) / 2,
+            width: bw + 12,
+            height: bh + 12,
+            borderRadius: (Math.max(bw, bh) + 12) / 2,
           },
           haloStyle,
         ]}
       />
-      {/* Vraie perle PNG */}
+      {/* Perle avec sa vraie forme */}
       <Animated.View style={beadStyle}>
-        <Image
-          source={image}
-          style={{
-            width: BEAD_SIZE,
-            height: BEAD_SIZE,
-          }}
-          resizeMode="contain"
-        />
+        <BeadShape shape={shape} size={size} hex={hex} image={image} />
       </Animated.View>
     </Pressable>
   );
@@ -79,8 +92,6 @@ export default function FanBead({ image, x, y, selected, onPress, testID }: Prop
 const styles = StyleSheet.create({
   hitArea: {
     position: "absolute",
-    width: HITAREA,
-    height: HITAREA,
     alignItems: "center",
     justifyContent: "center",
   },

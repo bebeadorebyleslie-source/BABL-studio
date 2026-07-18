@@ -7,6 +7,8 @@ import {
   ImageSourcePropType,
 } from "react-native";
 import { MM } from "../constants/sizes";
+import BeadShape, { beadShapeDimensions } from "./BeadShape";
+import type { SiliconeShape } from "../data/silicone-colors";
 
 // === Dimensions naturelles (référence, ne jamais modifier) ===
 const CLIP_SIZE = 180;
@@ -27,10 +29,12 @@ export const NATURAL_WIDTH = CLIP_SIZE;
 
 export type CompositionBead = {
   id: string;
-  family: string; // "silicone-ronde", ...
-  type: string;
+  family: string;
+  shape?: SiliconeShape;
+  variantId?: string;
   colorId?: string;
   size: number; // mm
+  hex?: string;
   color?: string;
   image?: ImageSourcePropType;
 };
@@ -83,27 +87,21 @@ export default function Workspace({
             {composition.map((item) => {
               const px = item.size * MM;
               const isSelected = selectedBeadId === item.id;
+              const shape: SiliconeShape = item.shape ?? "ronde";
+              const dims = beadShapeDimensions(shape, px);
               return (
                 <Pressable
                   key={item.id}
                   testID={`composition-bead-${item.id}`}
                   onPress={() => onBeadPress?.(item.id)}
-                  style={{ width: px, height: px }}
+                  style={{ width: dims.width, height: dims.height, alignItems: "center", justifyContent: "center" }}
                 >
-                  {item.image ? (
-                    <Image
-                      source={item.image}
-                      style={styles.beadImage}
-                      resizeMode="contain"
-                    />
-                  ) : (
-                    <View
-                      style={[
-                        styles.beadColor,
-                        { backgroundColor: item.color ?? "#ddd" },
-                      ]}
-                    />
-                  )}
+                  <BeadShape
+                    shape={shape}
+                    size={px}
+                    hex={item.hex ?? item.color ?? "#ddd"}
+                    image={item.image}
+                  />
                   {isSelected && <View style={styles.beadSelectedRing} pointerEvents="none" />}
                 </Pressable>
               );

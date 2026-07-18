@@ -6,17 +6,16 @@ import { StatusBar } from "expo-status-bar";
 import Header from "../src/components/Header";
 import Workspace, { CompositionBead } from "../src/components/Workspace";
 import Sidebar from "../src/components/Sidebar";
-import SiliconeRondePanel from "../src/components/panels/SiliconeRondePanel";
+import PerlesSiliconePanel from "../src/components/panels/PerlesSiliconePanel";
 import BeadActionMenu from "../src/components/BeadActionMenu";
 
 import initialComposition from "../src/data/composition";
-import {
-  SILICONE_RONDE_COLORS,
-  SiliconeRondeSize,
-} from "../src/data/silicone-ronde-colors";
+import { getColorById, getVariantById } from "../src/data/silicone-colors";
 import { MM } from "../src/constants/sizes";
 
 type PanelMode = { family: string; mode: "add" | "replace"; beadId?: string } | null;
+
+const PERLES_SILICONE_ID = "perles-silicone";
 
 export default function Index() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -38,24 +37,51 @@ export default function Index() {
   const selectedBeadSizePx = selectedBead ? selectedBead.size * MM : 0;
 
   const handleFamilyOpen = (familyId: string) => {
-    if (familyId === "silicone-ronde") {
+    if (familyId === PERLES_SILICONE_ID) {
       setSidebarOpen(false);
-      setPanel({ family: "silicone-ronde", mode: "add" });
+      setPanel({ family: PERLES_SILICONE_ID, mode: "add" });
     }
   };
 
-  const handleAddSiliconeRonde = (colorId: string, size: SiliconeRondeSize) => {
-    const color = SILICONE_RONDE_COLORS.find((c) => c.id === colorId);
-    if (!color) return;
+  const handleAddPerleSilicone = (colorId: string, variantId: string) => {
+    const color = getColorById(colorId);
+    const variant = getVariantById(variantId);
+    if (!color || !variant) return;
     const newBead: CompositionBead = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      family: "silicone-ronde",
-      type: "silicone",
+      family: PERLES_SILICONE_ID,
+      shape: variant.shape,
+      variantId: variant.id,
       colorId: color.id,
-      size,
+      size: variant.size,
+      hex: color.hex,
       image: color.image,
     };
     setComposition((prev) => [...prev, newBead]);
+  };
+
+  const handleReplacePerleSilicone = (colorId: string, variantId: string) => {
+    if (!selectedBeadId) return;
+    const color = getColorById(colorId);
+    const variant = getVariantById(variantId);
+    if (!color || !variant) return;
+    setComposition((prev) =>
+      prev.map((b) =>
+        b.id === selectedBeadId
+          ? {
+              ...b,
+              shape: variant.shape,
+              variantId: variant.id,
+              colorId: color.id,
+              size: variant.size,
+              hex: color.hex,
+              image: color.image,
+            }
+          : b,
+      ),
+    );
+    setSelectedBeadId(null);
+    setPanel(null);
   };
 
   const handleBeadTap = (beadId: string) => {
@@ -70,35 +96,21 @@ export default function Index() {
 
   const handleReplaceRequest = () => {
     if (!selectedBead) return;
-    // Ouvrir le panneau de la famille correspondante en mode replace
-    if (selectedBead.family === "silicone-ronde") {
-      setPanel({ family: "silicone-ronde", mode: "replace", beadId: selectedBead.id });
+    if (selectedBead.family === PERLES_SILICONE_ID) {
+      setPanel({
+        family: PERLES_SILICONE_ID,
+        mode: "replace",
+        beadId: selectedBead.id,
+      });
     }
-    // Fermer le menu contextuel visuellement (mais garder selectedBeadId pour le remplacement)
   };
 
-  const handleReplaceSiliconeRonde = (colorId: string, size: SiliconeRondeSize) => {
-    if (!selectedBeadId) return;
-    const color = SILICONE_RONDE_COLORS.find((c) => c.id === colorId);
-    if (!color) return;
-    setComposition((prev) =>
-      prev.map((b) =>
-        b.id === selectedBeadId
-          ? { ...b, colorId: color.id, size, image: color.image }
-          : b,
-      ),
-    );
-    setSelectedBeadId(null);
-    setPanel(null);
-  };
-
-  // Info à passer au BeadActionMenu
   const selectedBeadColor = selectedBead
-    ? SILICONE_RONDE_COLORS.find((c) => c.id === selectedBead.colorId)
+    ? getColorById(selectedBead.colorId ?? "")
     : null;
 
   const isReplaceMode = panel?.mode === "replace";
-  const menuVisible = !!selectedBead && !panel; // fermé quand le panel replace est ouvert
+  const menuVisible = !!selectedBead && !panel;
 
   return (
     <View style={styles.root}>
@@ -135,8 +147,8 @@ export default function Index() {
         onFamilyOpen={handleFamilyOpen}
       />
 
-      <SiliconeRondePanel
-        visible={panel?.family === "silicone-ronde"}
+      <PerlesSiliconePanel
+        visible={panel?.family === PERLES_SILICONE_ID}
         mode={panel?.mode ?? "add"}
         currentLengthPx={totalLengthPx}
         excludeBeadSizePx={isReplaceMode ? selectedBeadSizePx : 0}
@@ -144,8 +156,8 @@ export default function Index() {
           setPanel(null);
           if (isReplaceMode) setSelectedBeadId(null);
         }}
-        onAddBead={handleAddSiliconeRonde}
-        onReplaceBead={handleReplaceSiliconeRonde}
+        onAddBead={handleAddPerleSilicone}
+        onReplaceBead={handleReplacePerleSilicone}
       />
 
       <BeadActionMenu
@@ -155,8 +167,9 @@ export default function Index() {
             ? {
                 name: selectedBeadColor?.name,
                 size: selectedBead.size,
+                shape: selectedBead.shape,
                 image: selectedBead.image,
-                color: selectedBead.color,
+                hex: selectedBead.hex,
               }
             : null
         }

@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Pressable,
-  Image,
   ImageSourcePropType,
 } from "react-native";
 import Animated, {
@@ -16,6 +15,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 
+import BeadShape from "./BeadShape";
+import type { SiliconeShape } from "../data/silicone-colors";
+
 const PANEL_HEIGHT = 240;
 
 type Props = {
@@ -23,8 +25,9 @@ type Props = {
   bead: {
     name?: string;
     size: number;
+    shape?: SiliconeShape;
     image?: ImageSourcePropType;
-    color?: string;
+    hex?: string;
   } | null;
   onReplace: () => void;
   onDelete: () => void;
@@ -94,16 +97,12 @@ export default function BeadActionMenu({
         {/* Aperçu perle */}
         <View style={styles.preview}>
           <View style={styles.beadThumb}>
-            {bead.image ? (
-              <Image source={bead.image} style={styles.beadImg} resizeMode="contain" />
-            ) : (
-              <View
-                style={[
-                  styles.beadColor,
-                  { backgroundColor: bead.color ?? "#ddd" },
-                ]}
-              />
-            )}
+            <BeadShape
+              shape={bead.shape ?? "ronde"}
+              size={48}
+              hex={bead.hex ?? "#ddd"}
+              image={bead.image}
+            />
           </View>
           <View style={styles.previewText}>
             <Text style={styles.previewName}>{bead.name ?? "Perle"}</Text>

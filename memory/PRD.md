@@ -117,8 +117,31 @@ BABL Studio est un configurateur premium mobile permettant aux parents de créer
   - "Remplacer" → réouvre le panneau de la bonne famille en mode replace
   - "Supprimer" → retire la perle de la composition
 
+### Sprint 5.5 — Refonte "Perles Silicone" avec variantes (LIVRÉ)
+- **Sidebar** :
+  - Catégorie "Silicone ronde" renommée en **"Perles Silicone"** (sous-titre "Ronde, hexagone, lentille")
+  - Catégorie "Silicone hexagonale" **supprimée** de la sidebar
+  - Nouvel id de famille : `perles-silicone`
+- **4 variantes de perles silicone** unifiées dans un seul panneau :
+  - **Ronde 12 mm** — 25 couleurs (PNG texturés)
+  - **Ronde 15 mm** — 25 couleurs (PNG texturés)
+  - **Hexagone 14 mm** — 13 couleurs (rendus SVG polygones réguliers) : Blanc, Poussière d'étoile, Marbre, Gris foncé, Argan, Menthe, Vert tropicale, Kaki clair, Moutarde, Chocolat, Brume bleu, Rose quartz, Pêche
+  - **Lentille 6 mm** — 4 couleurs (rendus SVG ellipses aplaties) : Blanc, Kaki clair, Argan, Pêche
+- **Éventail adaptatif** :
+  - 25 couleurs → 2 arcs (10 + 15) — inchangé
+  - 13 couleurs → 2 arcs (5 + 8)
+  - 4 couleurs → arc unique
+- **Nouveaux composants** :
+  - `BeadShape.tsx` : rendu unifié Ronde PNG / Hexagone SVG / Lentille SVG
+  - `SegmentedToggle.tsx` : sélecteur générique 4 options avec labels
+  - `PerlesSiliconePanel.tsx` : nouveau panneau unifié
+- **Data** : `silicone-colors.ts` fusionne palette (couleurs + hex + PNG) et variants (4 combinaisons)
+- **Workspace** : accepte perles de toute forme, rend via `BeadShape`
+- **Composition** : ajoute champs `shape`, `variantId`, `hex`
+- Ancien `SiliconeRondePanel.tsx`, `silicone-ronde-colors.ts`, `SizeToggle.tsx` supprimés
+
 ## Sprints à venir
-- Sprint 6 : Interface silicone hexagonale (éventail spécifique)
+- Sprint 6 : Interface Crochet (éventail plus petit)
 - Sprint 4 : Interface silicone hexagonale (éventail spécifique)
 - Sprint 5 : Interface crochet (éventail plus petit)
 - Sprint 6 : Interface formes bois (galerie)

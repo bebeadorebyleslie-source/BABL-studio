@@ -11,20 +11,12 @@ export type Family = {
 
 export const FAMILIES: Family[] = [
   {
-    id: "silicone-ronde",
-    title: "Silicone ronde",
-    subtitle: "25 couleurs disponibles",
+    id: "perles-silicone",
+    title: "Perles Silicone",
+    subtitle: "Ronde, hexagone, lentille",
     iconName: "circle",
     iconColor: "#c48a5c",
     iconBg: "#f6ecdf",
-  },
-  {
-    id: "silicone-hexagonale",
-    title: "Silicone hexagonale",
-    subtitle: "Perles à facettes",
-    iconName: "hexagon",
-    iconColor: "#8a9b73",
-    iconBg: "#eef1e6",
   },
   {
     id: "crochet",
