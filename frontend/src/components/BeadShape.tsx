@@ -1,4 +1,4 @@
-import { Image, ImageSourcePropType, View } from "react-native";
+import { Image, ImageSourcePropType, Text, View } from "react-native";
 import Svg, {
   Polygon,
   Ellipse,
@@ -20,6 +20,10 @@ type Props = {
   size: number;
   hex: string;
   image?: ImageSourcePropType;
+  label?: string;
+  rotationDeg?: number;
+  renderWidthPx?: number;
+  renderHeightPx?: number;
 };
 
 // Petit utilitaire pour éclaircir/foncer une couleur hex
@@ -46,43 +50,56 @@ export default function BeadShape({
   size,
   hex,
   image,
+  label,
+  rotationDeg,
+  renderWidthPx,
+  renderHeightPx,
 }: Props) {
-  // === Silicone Ronde : PNG réel ===
-  if (material === "silicone" && shape === "ronde" && image) {
+  const shouldRenderImage =
+    !!image &&
+    ((material === "silicone" && (shape === "ronde" || shape === "hexagone" || shape === "lentille")) ||
+      (material === "bois" && (shape === "ronde" || shape === "hexagone" || shape === "lentille")) ||
+      (material === "crochet" && shape === "ronde"));
+
+  if (shouldRenderImage) {
+    const imageWidthPx = renderWidthPx ?? (shape === "lentille" ? size * 2.2 : size);
+    const imageHeightPx = renderHeightPx ?? size;
     return (
       <Image
         source={image}
-        style={{ width: size, height: size }}
+        style={{
+          width: imageWidthPx,
+          height: imageHeightPx,
+          transform: rotationDeg ? [{ rotate: `${rotationDeg}deg` }] : undefined,
+        }}
         resizeMode="contain"
       />
     );
   }
 
-  // === Silicone Hexagone : SVG avec gradient radial + highlight ===
-  if (material === "silicone" && shape === "hexagone") {
-    const light = shade(hex, SILICONE_LIGHT);
-    const dark = shade(hex, SILICONE_DARK);
-    const gradId = `sil-hex-${hex.replace("#", "")}`;
-    return (
-      <Svg width={size} height={size} viewBox="0 0 100 100">
-        <Defs>
-          <RadialGradient id={gradId} cx="35%" cy="30%" rx="75%" ry="75%">
-            <Stop offset="0%" stopColor={light} stopOpacity="1" />
-            <Stop offset="55%" stopColor={hex} stopOpacity="1" />
-            <Stop offset="100%" stopColor={dark} stopOpacity="1" />
-          </RadialGradient>
-        </Defs>
-        <Polygon
-          points="50,4 92,26 92,74 50,96 8,74 8,26"
-          fill={`url(#${gradId})`}
-          stroke={shade(hex, -60)}
-          strokeWidth={1}
-          strokeLinejoin="round"
-        />
-        {/* Highlight lumineux */}
-        <Ellipse cx="40" cy="24" rx="18" ry="6" fill="#ffffff" opacity="0.35" />
-      </Svg>
-    );
+  // === Silicone Ronde : PNG réel ou lettre ===
+  // On garde contain pour conserver l’intégralité de l’image sans
+  // découper les côtés. La marge visuelle sera principalement réglée
+  // au niveau de l’asset PNG lui-même.
+  if (material === "silicone" && shape === "ronde") {
+    if (label) {
+      return (
+        <View
+          style={{
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            backgroundColor: hex,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text style={{ fontSize: Math.max(10, size * 0.42), fontWeight: "700", color: "#5a4b3c" }}>
+            {label}
+          </Text>
+        </View>
+      );
+    }
   }
 
   // === Silicone Lentille : SVG ellipse aplatie avec gradient + highlight ===
@@ -117,17 +134,6 @@ export default function BeadShape({
 
   // === Bois (hêtre) : image PNG réelle si dispo, sinon SVG avec grain ===
   if (material === "bois") {
-    if (image && (shape === "ronde" || shape === "hexagone")) {
-      // Utiliser le vrai PNG bois pour rondes et hexagones
-      return (
-        <Image
-          source={image}
-          style={{ width: size, height: size }}
-          resizeMode="contain"
-        />
-      );
-    }
-
     // Fallback SVG (lentille bois)
     const light = shade(hex, WOOD_LIGHT_EDGE);
     const dark = shade(hex, WOOD_DARK_EDGE);
@@ -199,10 +205,12 @@ export default function BeadShape({
 
   // === Crochet : PNG réel si dispo, sinon SVG texture "tricot" ===
   if (material === "crochet" && shape === "ronde" && image) {
+    const imageWidthPx = renderWidthPx ?? size;
+    const imageHeightPx = renderHeightPx ?? size;
     return (
       <Image
         source={image}
-        style={{ width: size, height: size }}
+        style={{ width: imageWidthPx, height: imageHeightPx }}
         resizeMode="contain"
       />
     );

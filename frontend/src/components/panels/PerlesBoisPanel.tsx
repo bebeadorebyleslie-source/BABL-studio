@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Pressable,
+  ScrollView,
 } from "react-native";
 import Animated, {
   useSharedValue,
@@ -130,11 +131,13 @@ export default function PerlesBoisPanel({
   const remainingMm = Math.max(0, remainingPx / MM);
   const isReplaceMode = mode === "replace";
 
-  const canSubmit = !!selectedVariant && (isReplaceMode || willFit);
-  const submitLabel = isReplaceMode
-    ? "Remplacer"
-    : !willFit && selectedVariant
-      ? `Plus de place (reste ${Math.floor(remainingMm)} mm)`
+  const canSubmit = !!selectedVariant && willFit;
+  const submitLabel = !willFit && selectedVariant
+    ? isReplaceMode
+      ? "Cette perle est trop grande pour l'espace restant."
+      : `Plus de place (reste ${Math.floor(remainingMm)} mm)`
+    : isReplaceMode
+      ? "Remplacer"
       : "Ajouter à mon attache";
 
   if (!mounted) return null;
@@ -160,8 +163,11 @@ export default function PerlesBoisPanel({
           </TouchableOpacity>
         </View>
 
-        {/* Grille de tuiles */}
-        <View style={styles.grid}>
+        <ScrollView
+          style={styles.gridScroll}
+          contentContainerStyle={styles.grid}
+          showsVerticalScrollIndicator={false}
+        >
           {WOOD_VARIANTS.map((v) => (
             <WoodTile
               key={v.id}
@@ -171,7 +177,7 @@ export default function PerlesBoisPanel({
               onPress={() => setSelectedVariantId(v.id)}
             />
           ))}
-        </View>
+        </ScrollView>
 
         <TouchableOpacity
           testID={isReplaceMode ? "perles-bois-replace-button" : "perles-bois-add-button"}
@@ -240,13 +246,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginLeft: 8,
   },
+  gridScroll: {
+    flex: 1,
+  },
   grid: {
     flex: 1,
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
-    alignContent: "center",
+    alignContent: "flex-start",
     gap: 8,
+    paddingBottom: 120,
   },
   tileWrap: {
     width: "31%",

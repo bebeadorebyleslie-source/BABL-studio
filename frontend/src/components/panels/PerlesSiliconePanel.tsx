@@ -22,6 +22,9 @@ import {
   SiliconeVariant,
   getColorById,
   getVariantById,
+  getSiliconeLentilleImageByColorId,
+  getSiliconeHexImageByColorId,
+  getSiliconeHexDimensionsByColorId,
 } from "../../data/silicone-colors";
 import { MM } from "../../constants/sizes";
 import { TEMPLATE_INNER_HEIGHT_PX } from "../Workspace";
@@ -36,6 +39,8 @@ type FanLayout = {
   fanWidth: number;
   fanHeight: number;
 };
+
+const LENTILLE_DISPLAY_ORDER = ["sr-01", "sr-07", "sr-23", "sr-13"] as const;
 
 const getFanLayout = (colorCount: number): FanLayout => {
   if (colorCount >= 20) {
@@ -65,9 +70,9 @@ const getFanLayout = (colorCount: number): FanLayout => {
   // Lentilles : 4 couleurs → arc unique
   return {
     arcs: [{ count: colorCount, radius: 100 }],
-    beadVisualSize: 30, // hauteur visuelle
-    fanWidth: 320,
-    fanHeight: 135,
+    beadVisualSize: 27, // hauteur visuelle légèrement réduite
+    fanWidth: 260,
+    fanHeight: 210,
   };
 };
 
@@ -124,8 +129,13 @@ export default function PerlesSiliconePanel({
   const variant: SiliconeVariant =
     getVariantById(selectedVariantId) ?? SILICONE_VARIANTS[1];
   const availableColors = useMemo(
-    () =>
-      SILICONE_COLORS.filter((c) => variant.availableColorIds.includes(c.id)),
+    () => {
+      const filtered = SILICONE_COLORS.filter((c) => variant.availableColorIds.includes(c.id));
+      if (variant.shape !== "lentille") return filtered;
+
+      const orderMap = new Map(LENTILLE_DISPLAY_ORDER.map((id, index) => [id, index]));
+      return [...filtered].sort((a, b) => (orderMap.get(a.id) ?? 999) - (orderMap.get(b.id) ?? 999));
+    },
     [variant],
   );
 
@@ -150,6 +160,13 @@ export default function PerlesSiliconePanel({
 
   // Layout adaptatif de l'éventail
   const layout = getFanLayout(availableColors.length);
+  const beadVisualSize =
+    variant.shape === "ronde" && variant.size <= 12
+      ? Math.max(24, layout.beadVisualSize - 4)
+      : layout.beadVisualSize;
+  const lentilleStepPx = beadVisualSize + 12;
+  const lentilleStartYPx =
+    (layout.fanHeight - (availableColors.length - 1) * lentilleStepPx) / 2;
   const CX = layout.fanWidth / 2;
   const CY = layout.fanHeight - 15;
 
@@ -185,13 +202,14 @@ export default function PerlesSiliconePanel({
     label: v.label,
   }));
 
-  const canSubmit =
-    !!selectedColorId && (isReplaceMode || willFit);
+  const canSubmit = !!selectedColorId && willFit;
 
-  const submitLabel = isReplaceMode
-    ? "Remplacer"
-    : !willFit && selectedColorId
-      ? `Plus de place (reste ${Math.floor(remainingMm)} mm)`
+  const submitLabel = !willFit && selectedColorId
+    ? isReplaceMode
+      ? "Cette perle est trop grande pour l'espace restant."
+      : `Plus de place (reste ${Math.floor(remainingMm)} mm)`
+    : isReplaceMode
+      ? "Remplacer"
       : "Ajouter à mon attache";
 
   if (!mounted) return null;
@@ -260,15 +278,30 @@ export default function PerlesSiliconePanel({
           >
             {arcSlices.map((slice, arcIdx) =>
               slice.colors.map((c, i) => {
-                const { x, y } = beadPos(i, slice.colors.length, slice.radius);
+                const isLentille = variant.shape === "lentille";
+                const { x, y } = isLentille
+                  ? { x: CX, y: lentilleStartYPx + i * lentilleStepPx }
+                  : beadPos(i, slice.colors.length, slice.radius);
+                const isHex = variant.shape === "hexagone";
+                const hexVisualDims = isHex
+                  ? getSiliconeHexDimensionsByColorId(c.id, beadVisualSize)
+                  : null;
                 return (
                   <FanBead
                     key={`${c.id}-${variant.id}`}
                     testID={`bead-${c.id}`}
                     shape={variant.shape}
                     hex={c.hex}
-                    image={c.image}
-                    size={layout.beadVisualSize}
+                    image={
+                      variant.shape === "lentille"
+                        ? getSiliconeLentilleImageByColorId(c.id)
+                        : variant.shape === "hexagone"
+                          ? getSiliconeHexImageByColorId(c.id) ?? c.image
+                          : c.image
+                    }
+                    size={beadVisualSize}
+                    beadWidthPx={hexVisualDims?.width}
+                    beadHeightPx={hexVisualDims?.height}
                     x={x}
                     y={y}
                     selected={selectedColorId === c.id}

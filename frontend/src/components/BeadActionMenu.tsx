@@ -30,8 +30,10 @@ type Props = {
     image?: ImageSourcePropType;
     hex?: string;
   } | null;
-  onReplace: () => void;
+  onReplace?: () => void;
   onDelete: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
   onClose: () => void;
 };
 
@@ -40,6 +42,8 @@ export default function BeadActionMenu({
   bead,
   onReplace,
   onDelete,
+  onMoveUp,
+  onMoveDown,
   onClose,
 }: Props) {
   const [mounted, setMounted] = useState(visible);
@@ -114,15 +118,17 @@ export default function BeadActionMenu({
 
         {/* Actions */}
         <View style={styles.actions}>
-          <TouchableOpacity
-            testID="bead-action-replace"
-            style={[styles.actionBtn, styles.replaceBtn]}
-            activeOpacity={0.85}
-            onPress={onReplace}
-          >
-            <Ionicons name="swap-horizontal" size={18} color="#5a4b3c" />
-            <Text style={styles.replaceText}>Remplacer</Text>
-          </TouchableOpacity>
+          {onReplace ? (
+            <TouchableOpacity
+              testID="bead-action-replace"
+              style={[styles.actionBtn, styles.replaceBtn]}
+              activeOpacity={0.85}
+              onPress={onReplace}
+            >
+              <Ionicons name="swap-horizontal" size={18} color="#5a4b3c" />
+              <Text style={styles.replaceText}>Remplacer</Text>
+            </TouchableOpacity>
+          ) : null}
 
           <TouchableOpacity
             testID="bead-action-delete"
@@ -134,6 +140,32 @@ export default function BeadActionMenu({
             <Text style={styles.deleteText}>Supprimer</Text>
           </TouchableOpacity>
         </View>
+
+        {(onMoveUp || onMoveDown) && (
+          <View style={styles.reorderRow}>
+            <TouchableOpacity
+              testID="bead-action-move-up"
+              style={[styles.reorderBtn, !onMoveUp && styles.reorderBtnDisabled]}
+              activeOpacity={0.85}
+              onPress={onMoveUp}
+              disabled={!onMoveUp}
+            >
+              <Ionicons name="chevron-up" size={18} color={onMoveUp ? "#5a4b3c" : "#bfb2a3"} />
+              <Text style={[styles.reorderText, !onMoveUp && styles.reorderTextDisabled]}>Monter</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              testID="bead-action-move-down"
+              style={[styles.reorderBtn, !onMoveDown && styles.reorderBtnDisabled]}
+              activeOpacity={0.85}
+              onPress={onMoveDown}
+              disabled={!onMoveDown}
+            >
+              <Ionicons name="chevron-down" size={18} color={onMoveDown ? "#5a4b3c" : "#bfb2a3"} />
+              <Text style={[styles.reorderText, !onMoveDown && styles.reorderTextDisabled]}>Descendre</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </Animated.View>
     </View>
   );
@@ -230,5 +262,31 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 15,
     fontWeight: "600",
+  },
+  reorderRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 10,
+  },
+  reorderBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    borderRadius: 999,
+    gap: 6,
+    backgroundColor: "#f5efe4",
+  },
+  reorderBtnDisabled: {
+    opacity: 0.45,
+  },
+  reorderText: {
+    color: "#5a4b3c",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  reorderTextDisabled: {
+    color: "#bfb2a3",
   },
 });

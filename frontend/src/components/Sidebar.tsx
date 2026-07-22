@@ -24,33 +24,51 @@ type Props = {
   visible: boolean;
   onClose: () => void;
   onFamilyOpen?: (familyId: string) => void;
+  hiddenFamilyIds?: string[];
+  mobileMode?: boolean;
 };
 
-export default function Sidebar({ visible, onClose, onFamilyOpen }: Props) {
-  const { width: screenWidth } = useWindowDimensions();
+export default function Sidebar({ visible, onClose, onFamilyOpen, hiddenFamilyIds = [], mobileMode = false }: Props) {
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   // Largeur bien proportionnée :
   // - minimum 288px (garantit la lisibilité des titres même sur iPhone SE 375px)
   // - cible 72% de l'écran
   // - maximum 340px (reste discrète sur grands écrans)
   const SIDEBAR_WIDTH = Math.max(288, Math.min(340, screenWidth * 0.72));
+  const DRAWER_HEIGHT = Math.max(420, Math.min(640, screenHeight * 0.72));
 
   const [mounted, setMounted] = useState(visible);
   const translateX = useSharedValue(-SIDEBAR_WIDTH);
+  const translateY = useSharedValue(DRAWER_HEIGHT);
   const backdropOpacity = useSharedValue(0);
 
   useEffect(() => {
     if (visible) {
       setMounted(true);
-      translateX.value = withTiming(0, {
-        duration: 280,
-        easing: Easing.out(Easing.cubic),
-      });
+      if (mobileMode) {
+        translateY.value = withTiming(0, {
+          duration: 280,
+          easing: Easing.out(Easing.cubic),
+        });
+      } else {
+        translateX.value = withTiming(0, {
+          duration: 280,
+          easing: Easing.out(Easing.cubic),
+        });
+      }
       backdropOpacity.value = withTiming(1, { duration: 280 });
     } else if (mounted) {
-      translateX.value = withTiming(-SIDEBAR_WIDTH, {
-        duration: 220,
-        easing: Easing.in(Easing.cubic),
-      });
+      if (mobileMode) {
+        translateY.value = withTiming(DRAWER_HEIGHT, {
+          duration: 220,
+          easing: Easing.in(Easing.cubic),
+        });
+      } else {
+        translateX.value = withTiming(-SIDEBAR_WIDTH, {
+          duration: 220,
+          easing: Easing.in(Easing.cubic),
+        });
+      }
       backdropOpacity.value = withTiming(0, { duration: 220 }, (finished) => {
         if (finished) {
           // Unmount after animation completes
@@ -60,12 +78,13 @@ export default function Sidebar({ visible, onClose, onFamilyOpen }: Props) {
       const t = setTimeout(() => setMounted(false), 240);
       return () => clearTimeout(t);
     }
-  }, [visible]);
+  }, [visible, mobileMode, SIDEBAR_WIDTH, DRAWER_HEIGHT]);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const visibleFamilies = FAMILIES.filter((family) => !hiddenFamilyIds.includes(family.id));
 
   const panelStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
+    transform: mobileMode ? [{ translateY: translateY.value }] : [{ translateX: translateX.value }],
   }));
 
   const backdropStyle = useAnimatedStyle(() => ({
@@ -88,8 +107,17 @@ export default function Sidebar({ visible, onClose, onFamilyOpen }: Props) {
       </Animated.View>
 
       {/* Panneau Sidebar */}
-      <Animated.View style={[styles.panel, { width: SIDEBAR_WIDTH }, panelStyle]} testID="sidebar-panel">
-        <View style={styles.panelInner}>
+      <Animated.View
+        style={[
+          styles.panel,
+          mobileMode
+            ? { height: DRAWER_HEIGHT }
+            : { width: SIDEBAR_WIDTH },
+          panelStyle,
+        ]}
+        testID="sidebar-panel"
+      >
+        <View style={[styles.panelInner, mobileMode && styles.panelInnerMobile]}>
           {/* Header du panneau */}
           <View style={styles.panelHeader}>
             <View>
@@ -112,7 +140,7 @@ export default function Sidebar({ visible, onClose, onFamilyOpen }: Props) {
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            {FAMILIES.map((f) => (
+            {visibleFamilies.map((f) => (
               <CategoryCard
                 key={f.id}
                 id={f.id}
@@ -161,6 +189,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 24,
     elevation: 8,
+  },
+  panelInnerMobile: {
+    borderTopRightRadius: 32,
+    borderTopLeftRadius: 32,
+    borderBottomRightRadius: 0,
+    borderBottomLeftRadius: 0,
+    paddingTop: 18,
   },
   panelHeader: {
     flexDirection: "row",

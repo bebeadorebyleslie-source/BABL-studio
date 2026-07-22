@@ -1,4 +1,4 @@
-import { ImageSourcePropType } from "react-native";
+import { Image, ImageSourcePropType } from "react-native";
 
 export type SiliconeShape = "ronde" | "hexagone" | "lentille";
 
@@ -38,6 +38,67 @@ export const SILICONE_COLORS: SiliconeColor[] = [
   { id: "sr-25", name: "Rouge sombre", hex: "#722F2A", image: require("../../assets/images/silicone-ronde/sr-25.png") },
 ];
 
+export const SILICONE_LENTILLE_IMAGES: Record<string, ImageSourcePropType> = {
+  "sr-01": require("../../assets/images/silicone-ronde/sl-01.png"),
+  "sr-07": require("../../assets/images/silicone-ronde/sl-07.png"),
+  "sr-13": require("../../assets/images/silicone-ronde/sl-13.png"),
+  "sr-23": require("../../assets/images/silicone-ronde/sl-23.png"),
+};
+
+// PNG définitifs des hexagones silicone (H-*.png), ordonnés numériquement.
+const SILICONE_HEX_IMAGE_ENTRIES: readonly [string, ImageSourcePropType][] = [
+  ["sr-01", require("../../assets/images/silicone-ronde/H-01.png")],
+  ["sr-02", require("../../assets/images/silicone-ronde/H-02.png")],
+  ["sr-03", require("../../assets/images/silicone-ronde/H-03.png")],
+  ["sr-06", require("../../assets/images/silicone-ronde/H-06.png")],
+  ["sr-07", require("../../assets/images/silicone-ronde/H-07.png")],
+  ["sr-10", require("../../assets/images/silicone-ronde/H-10.png")],
+  ["sr-11", require("../../assets/images/silicone-ronde/H-11.png")],
+  ["sr-13", require("../../assets/images/silicone-ronde/H-13.png")],
+  ["sr-15", require("../../assets/images/silicone-ronde/H-15.png")],
+  ["sr-17", require("../../assets/images/silicone-ronde/H-17.png")],
+  ["sr-18", require("../../assets/images/silicone-ronde/H-18.png")],
+  ["sr-22", require("../../assets/images/silicone-ronde/H-22.png")],
+  ["sr-23", require("../../assets/images/silicone-ronde/H-23.png")],
+];
+
+const sortColorIdsNumerically = (a: string, b: string) => {
+  const aNum = Number(a.replace(/^[^0-9]+/, ""));
+  const bNum = Number(b.replace(/^[^0-9]+/, ""));
+  return aNum - bNum;
+};
+
+const SORTED_SILICONE_HEX_IMAGE_ENTRIES = [...SILICONE_HEX_IMAGE_ENTRIES].sort(([a], [b]) =>
+  sortColorIdsNumerically(a, b),
+);
+
+const SILICONE_HEX_IMAGES: Record<string, ImageSourcePropType> = Object.fromEntries(
+  SORTED_SILICONE_HEX_IMAGE_ENTRIES,
+);
+
+const SILICONE_HEX_COLOR_IDS = SORTED_SILICONE_HEX_IMAGE_ENTRIES.map(([id]) => id);
+
+export const getSiliconeLentilleImageByColorId = (id: string) =>
+  SILICONE_LENTILLE_IMAGES[id] ?? getColorById(id)?.image;
+
+export const getSiliconeHexImageByColorId = (id: string) =>
+  SILICONE_HEX_IMAGES[id] ?? null;
+
+export const getSiliconeHexDimensionsByColorId = (id: string, targetHeight = 14) => {
+  const source = getSiliconeHexImageByColorId(id);
+  if (!source) return null;
+  const resolved = Image.resolveAssetSource(source);
+  const sourceWidth = resolved?.width ?? 0;
+  const sourceHeight = resolved?.height ?? 0;
+  if (!sourceWidth || !sourceHeight) {
+    return { width: targetHeight, height: targetHeight };
+  }
+  return {
+    width: (sourceWidth / sourceHeight) * targetHeight,
+    height: targetHeight,
+  };
+};
+
 const ALL_IDS = SILICONE_COLORS.map((c) => c.id);
 
 export type SiliconeVariant = {
@@ -68,16 +129,13 @@ export const SILICONE_VARIANTS: SiliconeVariant[] = [
     label: "Hexa 14",
     shape: "hexagone",
     size: 14,
-    availableColorIds: [
-      "sr-01", "sr-02", "sr-03", "sr-06", "sr-07", "sr-10", "sr-11",
-      "sr-13", "sr-15", "sr-17", "sr-18", "sr-22", "sr-23",
-    ],
+    availableColorIds: SILICONE_HEX_COLOR_IDS,
   },
   {
     id: "lentille-6",
     label: "Lentille",
     shape: "lentille",
-    size: 6,
+    size: 7,
     availableColorIds: ["sr-01", "sr-13", "sr-07", "sr-23"],
   },
 ];

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import {
   View,
   Image,
+  Text,
   Pressable,
   StyleSheet,
   ImageSourcePropType,
@@ -9,6 +10,7 @@ import {
 import { MM } from "../constants/sizes";
 import BeadShape, { beadShapeDimensions, BeadMaterial } from "./BeadShape";
 import type { SiliconeShape } from "../data/silicone-colors";
+import { ClipModel, DEFAULT_CLIP_MODEL } from "../data/clip-models";
 
 // === Dimensions naturelles (référence, ne jamais modifier) ===
 const CLIP_SIZE = 180;
@@ -17,11 +19,12 @@ const TEMPLATE_HEIGHT = 620;
 const TEMPLATE_BORDER = 2;
 const LOOP_SIZE = 140;
 const CLIP_TEMPLATE_OVERLAP = 18;
-const TEMPLATE_LOOP_OVERLAP = 8;
+const TEMPLATE_LOOP_OVERLAP = 4;
 
 // Espace intérieur du gabarit dédié aux perles (2px de bordure en haut et en bas)
 export const TEMPLATE_INNER_HEIGHT_PX = TEMPLATE_HEIGHT - TEMPLATE_BORDER * 2; // 616
 export const TEMPLATE_INNER_HEIGHT_MM = TEMPLATE_INNER_HEIGHT_PX / MM; // 154
+export const BEAD_STACK_OVERLAP_PX = 0.8;
 
 export const NATURAL_HEIGHT =
   CLIP_SIZE + TEMPLATE_HEIGHT + LOOP_SIZE - CLIP_TEMPLATE_OVERLAP - TEMPLATE_LOOP_OVERLAP;
@@ -35,9 +38,16 @@ export type CompositionBead = {
   variantId?: string;
   colorId?: string;
   size: number; // mm
+  topAnchorOffsetMm?: number;
+  bottomAnchorOffsetMm?: number;
+  imageAspectRatio?: number;
+  generatedByName?: boolean;
   hex?: string;
   color?: string;
   image?: ImageSourcePropType;
+  label?: string;
+  widthMm?: number;
+  heightMm?: number;
 };
 
 type Props = {
@@ -46,6 +56,7 @@ type Props = {
   availableHeight?: number;
   onBeadPress?: (beadId: string) => void;
   selectedBeadId?: string | null;
+  clipModel?: ClipModel;
 };
 
 export default function Workspace({
@@ -54,6 +65,7 @@ export default function Workspace({
   availableHeight,
   onBeadPress,
   selectedBeadId,
+  clipModel = DEFAULT_CLIP_MODEL,
 }: Props) {
   const scale = useMemo(() => {
     const sH = availableHeight && availableHeight > 0 ? availableHeight / NATURAL_HEIGHT : 1;
@@ -76,11 +88,13 @@ export default function Workspace({
         ]}
       >
         {/* Clip */}
-        <Image
-          source={require("../../assets/images/clip.png")}
-          style={styles.clip}
-          resizeMode="contain"
-        />
+        <View style={styles.clipWrap}>
+          <Image
+            source={clipModel.image}
+            style={styles.clip}
+            resizeMode="contain"
+          />
+        </View>
 
         {/* Gabarit (Template) */}
         <View style={styles.template}>
@@ -89,13 +103,34 @@ export default function Workspace({
               const px = item.size * MM;
               const isSelected = selectedBeadId === item.id;
               const shape: SiliconeShape = item.shape ?? "ronde";
-              const dims = beadShapeDimensions(shape, px);
+              const isLetter = item.family === "lettres" && !!item.imageAspectRatio;
+              const letterWidthPx = px;
+              const letterHeightPx = isLetter ? px * (item.imageAspectRatio ?? 1) : px;
+              const shapeStackHeightPx = shape === "lentille" ? Math.round(px + 3) : px;
+              const explicitShapeWidthPx = item.widthMm ? item.widthMm * MM : undefined;
+              const explicitShapeHeightPx = item.heightMm ? item.heightMm * MM : undefined;
+              const dims = isLetter
+                ? { width: letterHeightPx, height: letterWidthPx }
+                : explicitShapeWidthPx && explicitShapeHeightPx
+                  ? { width: explicitShapeWidthPx, height: explicitShapeHeightPx }
+                : shape === "lentille"
+                  ? { width: beadShapeDimensions(shape, px).width, height: shapeStackHeightPx }
+                  : beadShapeDimensions(shape, px);
+              const topAnchorOffsetPx = Math.max(0, (item.topAnchorOffsetMm ?? 0) * MM);
+              const bottomAnchorOffsetPx = Math.max(0, (item.bottomAnchorOffsetMm ?? 0) * MM);
               return (
                 <Pressable
                   key={item.id}
                   testID={`composition-bead-${item.id}`}
                   onPress={() => onBeadPress?.(item.id)}
-                  style={{ width: dims.width, height: dims.height, alignItems: "center", justifyContent: "center" }}
+                  style={{
+                    width: dims.width,
+                    height: dims.height,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginTop: -BEAD_STACK_OVERLAP_PX - topAnchorOffsetPx,
+                    marginBottom: -BEAD_STACK_OVERLAP_PX - bottomAnchorOffsetPx,
+                  }}
                 >
                   <BeadShape
                     shape={shape}
@@ -103,6 +138,12 @@ export default function Workspace({
                     size={px}
                     hex={item.hex ?? item.color ?? "#ddd"}
                     image={item.image}
+                    label={item.label}
+                    widthMm={item.widthMm}
+                    heightMm={item.heightMm}
+                    rotationDeg={item.family === "lettres" ? 90 : undefined}
+                    renderWidthPx={isLetter ? letterWidthPx : explicitShapeWidthPx}
+                    renderHeightPx={isLetter ? letterHeightPx : explicitShapeHeightPx}
                   />
                   {isSelected && <View style={styles.beadSelectedRing} pointerEvents="none" />}
                 </Pressable>
@@ -134,6 +175,11 @@ const styles = StyleSheet.create({
   clip: {
     width: CLIP_SIZE,
     height: CLIP_SIZE,
+  },
+  clipWrap: {
+    width: CLIP_SIZE,
+    height: CLIP_SIZE,
+    position: "relative",
   },
   template: {
     width: TEMPLATE_WIDTH,

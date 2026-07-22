@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
   },
   cardSelected: {
     borderColor: "#d4a574",
-    backgroundColor: "#faf5eb",
+    backgroundColor: "#fff8f2",
   },
   iconWrap: {
     width: 44,

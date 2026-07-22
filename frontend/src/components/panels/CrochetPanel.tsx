@@ -35,6 +35,8 @@ type Props = {
   mode?: "add" | "replace";
   currentLengthPx?: number;
   excludeBeadSizePx?: number;
+  canUseCrochet?: boolean;
+  maxCrochetCount?: number;
   onClose: () => void;
   onAddBead: (colorId: string) => void;
   onReplaceBead?: (colorId: string) => void;
@@ -45,6 +47,8 @@ export default function CrochetPanel({
   mode = "add",
   currentLengthPx = 0,
   excludeBeadSizePx = 0,
+  canUseCrochet = true,
+  maxCrochetCount = 4,
   onClose,
   onAddBead,
   onReplaceBead,
@@ -96,11 +100,15 @@ export default function CrochetPanel({
   const innerColors = CROCHET_COLORS.slice(0, 6);
   const outerColors = CROCHET_COLORS.slice(6, 14);
 
-  const canSubmit = !!selectedColorId && (isReplaceMode || willFit);
-  const submitLabel = isReplaceMode
-    ? "Remplacer"
+  const canSubmit = !!selectedColorId && willFit && canUseCrochet;
+  const submitLabel = !canUseCrochet && selectedColorId
+    ? `Une attache-tétine ne peut contenir que ${maxCrochetCount} perles crochet maximum.`
     : !willFit && selectedColorId
-      ? `Plus de place (reste ${Math.floor(remainingMm)} mm)`
+    ? isReplaceMode
+      ? "Cette perle est trop grande pour l'espace restant."
+      : `Plus de place (reste ${Math.floor(remainingMm)} mm)`
+    : isReplaceMode
+      ? "Remplacer"
       : "Ajouter à mon attache";
 
   if (!mounted) return null;

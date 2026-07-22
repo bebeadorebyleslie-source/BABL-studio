@@ -18,6 +18,8 @@ type Props = {
   hex: string;
   image?: ImageSourcePropType;
   size: number; // Taille visuelle en px
+  beadWidthPx?: number;
+  beadHeightPx?: number;
   x: number;
   y: number;
   selected: boolean;
@@ -31,6 +33,8 @@ export default function FanBead({
   hex,
   image,
   size,
+  beadWidthPx,
+  beadHeightPx,
   x,
   y,
   selected,
@@ -52,7 +56,9 @@ export default function FanBead({
     opacity: haloOpacity.value,
   }));
 
-  const { width: bw, height: bh } = beadShapeDimensions(shape, size);
+  const shapeDims = beadShapeDimensions(shape, size);
+  const bw = beadWidthPx ?? shapeDims.width;
+  const bh = beadHeightPx ?? shapeDims.height;
   const hitW = Math.max(HITAREA_MIN, bw);
   const hitH = Math.max(HITAREA_MIN, bh);
 
@@ -85,7 +91,15 @@ export default function FanBead({
       />
       {/* Perle avec sa vraie forme */}
       <Animated.View style={beadStyle}>
-        <BeadShape shape={shape} material={material} size={size} hex={hex} image={image} />
+        <BeadShape
+          shape={shape}
+          material={material}
+          size={size}
+          hex={hex}
+          image={image}
+          renderWidthPx={beadWidthPx}
+          renderHeightPx={beadHeightPx}
+        />
       </Animated.View>
     </Pressable>
   );

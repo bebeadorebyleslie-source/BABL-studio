@@ -1,64 +1,27 @@
-import { View, Image, TouchableOpacity, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { View, Image, StyleSheet } from "react-native";
 
-type Props = {
-  onMenuPress?: () => void;
-  onFavoritesPress?: () => void;
-};
-
-export default function Header({ onMenuPress, onFavoritesPress }: Props) {
+export default function Header() {
   return (
     <View style={styles.header}>
-      {/* Menu hamburger */}
-      <TouchableOpacity
-        testID="header-menu-button"
-        style={styles.menuButton}
-        onPress={onMenuPress}
-      >
-        <Ionicons name="menu" size={28} color="#5a4b3c" />
-      </TouchableOpacity>
-
-      {/* Logo BABL Studio */}
       <Image
         source={require("../../assets/images/logo.png")}
         style={styles.logo}
         resizeMode="contain"
       />
-
-      {/* Icône favoris */}
-      <TouchableOpacity
-        testID="header-favorites-button"
-        style={styles.favoritesButton}
-        onPress={onFavoritesPress}
-      >
-        <Ionicons name="heart-outline" size={24} color="#5a4b3c" />
-      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   header: {
-    height: 70,
+    height: 66,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
     paddingHorizontal: 18,
   },
-  menuButton: {
-    width: 44,
-    height: 44,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   logo: {
-    height: 40,
-    width: 140,
-  },
-  favoritesButton: {
-    width: 44,
     height: 44,
-    justifyContent: "center",
-    alignItems: "center",
+    width: 162,
   },
 });

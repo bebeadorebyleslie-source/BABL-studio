@@ -8,6 +8,12 @@
 
 import Constants, { ExecutionEnvironment } from "expo-constants";
 import { useFonts } from "expo-font";
+import { Platform } from "react-native";
+import { AmaticSC_700Bold } from "@expo-google-fonts/amatic-sc";
+import { DancingScript_700Bold } from "@expo-google-fonts/dancing-script";
+import { GreatVibes_400Regular } from "@expo-google-fonts/great-vibes";
+import { GrandHotel_400Regular } from "@expo-google-fonts/grand-hotel";
+import { Pompiere_400Regular } from "@expo-google-fonts/pompiere";
 
 const ICON_VECTOR_VERSION = "15.1.1";
 
@@ -44,9 +50,20 @@ const iconFontMap = (): Record<string, string> =>
     Object.entries(ICON_FAMILIES).map(([key, file]) => [key, cdnUrl(file)]),
   );
 
+const customFontMap = {
+  "AmaticSC-Bold": AmaticSC_700Bold,
+  "DancingScript-Bold": DancingScript_700Bold,
+  "GreatVibes-Regular": GreatVibes_400Regular,
+  "GrandHotel-Regular": GrandHotel_400Regular,
+  "Pompiere-Regular": Pompiere_400Regular,
+  "WhiteStar-Regular": require("../../assets/fonts/White Star.ttf"),
+};
+
 export const useIconFonts = (): readonly [boolean, Error | null] =>
   useFonts(
-    Constants.executionEnvironment === ExecutionEnvironment.StoreClient
-      ? iconFontMap()
-      : {},
+    Platform.OS === "web"
+      ? {}
+      : Constants.executionEnvironment === ExecutionEnvironment.StoreClient
+        ? { ...iconFontMap(), ...customFontMap }
+        : customFontMap,
   );
