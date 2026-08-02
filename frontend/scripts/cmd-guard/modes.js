@@ -35,6 +35,10 @@ function runArgs(cmd, args) {
 const INSTALL_FORM = "yarn expo install";
 
 function runPreinstall() {
+  if (process.env.VERCEL || process.env.CI === "true" || process.env.CMD_GUARD_SKIP_PREINSTALL === "1") {
+    process.exit(0);
+  }
+
   const { list, source } = loadRules();
   maybeLogSource(list, source);
 
