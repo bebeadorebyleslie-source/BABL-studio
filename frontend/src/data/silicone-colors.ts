@@ -1,6 +1,11 @@
 import { Image, ImageSourcePropType } from "react-native";
 
-export type SiliconeShape = "ronde" | "hexagone" | "lentille";
+export type SiliconeShape =
+  | "ronde"
+  | "hexagone"
+  | "lentille"
+  | "feuillesiliconebas"
+  | "feuillesiliconehaut";
 
 export type SiliconeColor = {
   id: string;
@@ -45,6 +50,13 @@ export const SILICONE_LENTILLE_IMAGES: Record<string, ImageSourcePropType> = {
   "sr-23": require("../../assets/images/silicone-ronde/sl-23.png"),
 };
 
+export const SILICONE_ETOILE_IMAGES: Record<string, ImageSourcePropType> = {
+  "sr-01": require("../../assets/images/silicone-ronde/e-01.png"),
+  "sr-06": require("../../assets/images/silicone-ronde/e-06.png"),
+  "sr-10": require("../../assets/images/silicone-ronde/e-10.png"),
+  "sr-22": require("../../assets/images/silicone-ronde/e-22.png"),
+};
+
 // PNG définitifs des hexagones silicone (H-*.png), ordonnés numériquement.
 const SILICONE_HEX_IMAGE_ENTRIES: readonly [string, ImageSourcePropType][] = [
   ["sr-01", require("../../assets/images/silicone-ronde/H-01.png")],
@@ -77,9 +89,13 @@ const SILICONE_HEX_IMAGES: Record<string, ImageSourcePropType> = Object.fromEntr
 );
 
 const SILICONE_HEX_COLOR_IDS = SORTED_SILICONE_HEX_IMAGE_ENTRIES.map(([id]) => id);
+const SILICONE_ETOILE_COLOR_IDS = Object.keys(SILICONE_ETOILE_IMAGES);
 
 export const getSiliconeLentilleImageByColorId = (id: string) =>
   SILICONE_LENTILLE_IMAGES[id] ?? getColorById(id)?.image;
+
+export const getSiliconeEtoileImageByColorId = (id: string) =>
+  SILICONE_ETOILE_IMAGES[id] ?? null;
 
 export const getSiliconeHexImageByColorId = (id: string) =>
   SILICONE_HEX_IMAGES[id] ?? null;
@@ -135,8 +151,15 @@ export const SILICONE_VARIANTS: SiliconeVariant[] = [
     id: "lentille-6",
     label: "Lentille",
     shape: "lentille",
-    size: 7,
+    size: 5,
     availableColorIds: ["sr-01", "sr-13", "sr-07", "sr-23"],
+  },
+  {
+    id: "etoile-14",
+    label: "Étoile 14",
+    shape: "ronde",
+    size: 14,
+    availableColorIds: SILICONE_ETOILE_COLOR_IDS,
   },
 ];
 

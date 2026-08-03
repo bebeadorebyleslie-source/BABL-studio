@@ -41,7 +41,25 @@ const alphabetImages = [
   require("../../assets/images/alphabet/26.png"),
 ] as const;
 
+const specialAlphabetImages = [
+  ["À", require("../../assets/images/alphabet/A-grave.png")],
+  ["Ä", require("../../assets/images/alphabet/A-trema.png")],
+  ["Ç", require("../../assets/images/alphabet/C-cedille.png")],
+  ["È", require("../../assets/images/alphabet/E-grave.png")],
+  ["É", require("../../assets/images/alphabet/E-aigu.png")],
+  ["Ê", require("../../assets/images/alphabet/E-circonflexe.png")],
+  ["Ë", require("../../assets/images/alphabet/E-trema.png")],
+  ["Î", require("../../assets/images/alphabet/I-circonflexe.png")],
+  ["Ï", require("../../assets/images/alphabet/I-trema.png")],
+  ["Ô", require("../../assets/images/alphabet/O-circonflexe.png")],
+  ["Ö", require("../../assets/images/alphabet/O-trema.png")],
+  ["Ù", require("../../assets/images/alphabet/U-grave.png")],
+  ["Û", require("../../assets/images/alphabet/U-circonflexe.png")],
+  ["Ÿ", require("../../assets/images/alphabet/Y-trema.png")],
+] as const;
+
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const SPECIAL_LETTERS = ["À", "Ä", "Ç", "È", "É", "Ê", "Ë", "Î", "Ï", "Ô", "Ö", "Ù", "Û", "Ÿ"] as const;
 const DEFAULT_LETTER_IMAGE_ASPECT_RATIO = 130 / 99;
 
 const getImageAspectRatio = (image: ImageSourcePropType): number => {
@@ -67,5 +85,18 @@ export const LETTRES_VARIANTS: LettreVariant[] = LETTERS.map((letter, index) => 
   image: alphabetImages[index],
 }));
 
+export const LETTRES_SPECIALES_VARIANTS: LettreVariant[] = SPECIAL_LETTERS.map((letter, index) => ({
+  id: `lettre-special-${index + 1}`,
+  label: letter,
+  letter,
+  shape: "ronde",
+  size: 12,
+  imageAspectRatio: getImageAspectRatio(specialAlphabetImages[index][1]),
+  hex: "#ECE3D0",
+  image: specialAlphabetImages[index][1],
+}));
+
+const ALL_LETTERS_VARIANTS = [...LETTRES_VARIANTS, ...LETTRES_SPECIALES_VARIANTS];
+
 export const getLettreVariantById = (id: string) =>
-  LETTRES_VARIANTS.find((variant) => variant.id === id);
+  ALL_LETTERS_VARIANTS.find((variant) => variant.id === id);

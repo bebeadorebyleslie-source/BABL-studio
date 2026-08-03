@@ -23,6 +23,7 @@ import {
   getColorById,
   getVariantById,
   getSiliconeLentilleImageByColorId,
+  getSiliconeEtoileImageByColorId,
   getSiliconeHexImageByColorId,
   getSiliconeHexDimensionsByColorId,
 } from "../../data/silicone-colors";
@@ -286,6 +287,7 @@ export default function PerlesSiliconePanel({
                 const hexVisualDims = isHex
                   ? getSiliconeHexDimensionsByColorId(c.id, beadVisualSize)
                   : null;
+                const etoileImage = getSiliconeEtoileImageByColorId(c.id);
                 return (
                   <FanBead
                     key={`${c.id}-${variant.id}`}
@@ -295,6 +297,8 @@ export default function PerlesSiliconePanel({
                     image={
                       variant.shape === "lentille"
                         ? getSiliconeLentilleImageByColorId(c.id)
+                        : variant.id === "etoile-14"
+                          ? etoileImage ?? c.image
                         : variant.shape === "hexagone"
                           ? getSiliconeHexImageByColorId(c.id) ?? c.image
                           : c.image

@@ -55,14 +55,15 @@ export default function BeadShape({
   renderWidthPx,
   renderHeightPx,
 }: Props) {
+  const isSiliconeLeaf = shape === "feuillesiliconebas" || shape === "feuillesiliconehaut";
   const shouldRenderImage =
     !!image &&
-    ((material === "silicone" && (shape === "ronde" || shape === "hexagone" || shape === "lentille")) ||
+    ((material === "silicone" && (shape === "ronde" || shape === "hexagone" || shape === "lentille" || isSiliconeLeaf)) ||
       (material === "bois" && (shape === "ronde" || shape === "hexagone" || shape === "lentille")) ||
       (material === "crochet" && shape === "ronde"));
 
   if (shouldRenderImage) {
-    const imageWidthPx = renderWidthPx ?? (shape === "lentille" ? size * 2.2 : size);
+    const imageWidthPx = renderWidthPx ?? (shape === "lentille" ? size * 2.2 : isSiliconeLeaf ? size * 0.8 : size);
     const imageHeightPx = renderHeightPx ?? size;
     return (
       <Image
@@ -74,6 +75,60 @@ export default function BeadShape({
         }}
         resizeMode="contain"
       />
+    );
+  }
+
+  if (material === "silicone" && isSiliconeLeaf) {
+    const light = shade(hex, SILICONE_LIGHT);
+    const dark = shade(hex, SILICONE_DARK);
+    const gradId = `sil-leaf-${shape}-${hex.replace("#", "")}`;
+    const w = size * 0.8;
+    const h = size;
+    const isBottomLeaf = shape === "feuillesiliconebas";
+
+    return (
+      <Svg width={w} height={h} viewBox="0 0 200 250">
+        <Defs>
+          <RadialGradient id={gradId} cx="42%" cy="28%" rx="80%" ry="90%">
+            <Stop offset="0%" stopColor={light} stopOpacity="1" />
+            <Stop offset="58%" stopColor={hex} stopOpacity="1" />
+            <Stop offset="100%" stopColor={dark} stopOpacity="1" />
+          </RadialGradient>
+        </Defs>
+        <G transform={isBottomLeaf ? "rotate(180 100 125)" : undefined}>
+          <Path
+            d="M100 16C74 26 53 46 42 71C27 106 31 149 51 185C67 214 84 231 100 240C116 231 133 214 149 185C169 149 173 106 158 71C147 46 126 26 100 16Z"
+            fill={`url(#${gradId})`}
+            stroke={shade(hex, -60)}
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M100 28C100 74 100 130 100 226"
+            stroke={shade(hex, -58)}
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+          />
+          <Path
+            d="M100 74C84 90 71 111 60 136"
+            stroke={shade(hex, -42)}
+            strokeWidth="1.5"
+            fill="none"
+            strokeLinecap="round"
+            opacity="0.85"
+          />
+          <Path
+            d="M100 74C116 90 129 111 140 136"
+            stroke={shade(hex, -42)}
+            strokeWidth="1.5"
+            fill="none"
+            strokeLinecap="round"
+            opacity="0.85"
+          />
+          <Ellipse cx="82" cy="48" rx="24" ry="10" fill="#ffffff" opacity="0.28" />
+        </G>
+      </Svg>
     );
   }
 

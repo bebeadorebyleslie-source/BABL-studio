@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Animated,
   View,
   StyleSheet,
   Text,
   TextInput,
   Image,
+  ImageSourcePropType,
   Pressable,
   Keyboard,
   useWindowDimensions,
@@ -12,6 +14,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
+import { Asset } from "expo-asset";
+import icon1 from "../assets/images/icon1.png";
+import icon2 from "../assets/images/icon2.png";
+import icon3 from "../assets/images/icon3.png";
 
 import Header from "../src/components/Header";
 import Workspace, { BEAD_STACK_OVERLAP_PX, CompositionBead, NATURAL_HEIGHT } from "../src/components/Workspace";
@@ -25,16 +31,18 @@ import BeadActionMenu from "../src/components/BeadActionMenu";
 
 import {
   getColorById,
+  SILICONE_COLORS,
   SILICONE_VARIANTS,
   getVariantById,
   getSiliconeLentilleImageByColorId,
+  getSiliconeEtoileImageByColorId,
   getSiliconeHexImageByColorId,
   getSiliconeHexDimensionsByColorId,
 } from "../src/data/silicone-colors";
 import { WOOD_COLORS, WOOD_VARIANTS, getWoodVariantById } from "../src/data/wood-beads";
 import { CROCHET_COLORS, CROCHET_SIZE_MM, CROCHET_VARIANT_ID } from "../src/data/crochet-beads";
 import { FORMES_VARIANTS, getFormeDimensionsByVariantId, getFormeVariantById } from "../src/data/formes-beads";
-import { getLettreVariantById } from "../src/data/lettres-beads";
+import { LETTRES_VARIANTS, LETTRES_SPECIALES_VARIANTS, getLettreVariantById } from "../src/data/lettres-beads";
 import { MM } from "../src/constants/sizes";
 import { DEFAULT_CLIP_MODEL } from "../src/data/clip-models";
 import { TEMPLATE_INNER_HEIGHT_PX } from "../src/components/Workspace";
@@ -49,6 +57,7 @@ const PERLES_BOIS_ID = "perles-bois";
 const CROCHET_ID = "crochet";
 const FORMES_ID = "formes";
 const LETTRES_ID = "lettres";
+const LEAF_FORME_VARIANT_IDS = new Set(["forme-feuillesiliconebas", "forme-feuillesiliconehaut"]);
 const MAX_CROCHET_BEADS = 4;
 const CLIP_SIZE_PX = 180;
 const CLIP_TEMPLATE_OVERLAP_PX = 18;
@@ -56,38 +65,116 @@ const TEMPLATE_TOP_PX = CLIP_SIZE_PX - CLIP_TEMPLATE_OVERLAP_PX;
 
 const PERSONALIZATION_OPTIONS: {
   id: PersonalizationMode;
-  emoji: string;
+  icon: ImageSourcePropType;
   title: string;
   description: string;
 }[] = [
   {
     id: "engraving",
-    emoji: "🪵",
-    title: "Prenom grave",
-    description: "Le prenom est grave directement sur le clip en bois.",
+    icon: icon1,
+    title: "Prénom gravé",
+    description: "Le prénom est gravé directement sur le clip en bois.",
   },
   {
     id: "letters",
-    emoji: "🔠",
-    title: "Prenom en lettres",
-    description: "Le prenom est compose avec des perles lettres en bois sur l'attache.",
+    icon: icon2,
+    title: "Prénom en lettres",
+    description: "Le prénom est composé avec des perles lettres en bois sur l'attache-tétine.",
   },
   {
     id: "none",
-    emoji: "⚪",
-    title: "Sans prenom",
-    description: "Une creation epuree, sans personnalisation du prenom.",
+    icon: icon3,
+    title: "Sans prénom",
+    description: "Une création épurée, sans personnalisation du prénom.",
   },
 ];
 
+const SUPPORTED_LETTERS = new Set([
+  ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),
+  "À",
+  "Ä",
+  "Ç",
+  "È",
+  "É",
+  "Ê",
+  "Ë",
+  "Î",
+  "Ï",
+  "Ô",
+  "Ö",
+  "Ù",
+  "Û",
+  "Ÿ",
+]);
+
 const normalizeNameToLetters = (value: string): string[] =>
-  value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toUpperCase()
-    .replace(/[^A-Z]/g, "")
-    .split("")
+  Array.from(value.normalize("NFC").toUpperCase())
+    .filter((char) => SUPPORTED_LETTERS.has(char))
     .slice(0, 12);
+
+const LETTER_ID_BY_CHAR: Record<string, string> = {
+  A: "lettre-a",
+  B: "lettre-b",
+  C: "lettre-c",
+  D: "lettre-d",
+  E: "lettre-e",
+  F: "lettre-f",
+  G: "lettre-g",
+  H: "lettre-h",
+  I: "lettre-i",
+  J: "lettre-j",
+  K: "lettre-k",
+  L: "lettre-l",
+  M: "lettre-m",
+  N: "lettre-n",
+  O: "lettre-o",
+  P: "lettre-p",
+  Q: "lettre-q",
+  R: "lettre-r",
+  S: "lettre-s",
+  T: "lettre-t",
+  U: "lettre-u",
+  V: "lettre-v",
+  W: "lettre-w",
+  X: "lettre-x",
+  Y: "lettre-y",
+  Z: "lettre-z",
+  "À": "lettre-special-1",
+  "Ä": "lettre-special-2",
+  "Ç": "lettre-special-3",
+  "È": "lettre-special-4",
+  "É": "lettre-special-5",
+  "Ê": "lettre-special-6",
+  "Ë": "lettre-special-7",
+  "Î": "lettre-special-8",
+  "Ï": "lettre-special-9",
+  "Ô": "lettre-special-10",
+  "Ö": "lettre-special-11",
+  "Ù": "lettre-special-12",
+  "Û": "lettre-special-13",
+  "Ÿ": "lettre-special-14",
+};
+
+const getLetterVariantIdFromChar = (char: string) => LETTER_ID_BY_CHAR[char] ?? null;
+
+const asModuleAsset = (source?: ImageSourcePropType | null): number | null =>
+  typeof source === "number" ? source : null;
+
+const uniqueModuleAssets = (sources: Array<ImageSourcePropType | null | undefined>) => {
+  const set = new Set<number>();
+  sources.forEach((source) => {
+    const moduleId = asModuleAsset(source);
+    if (moduleId) set.add(moduleId);
+  });
+  return [...set];
+};
+
+const preloadModulesInBatches = async (moduleIds: number[], batchSize = 16) => {
+  for (let i = 0; i < moduleIds.length; i += batchSize) {
+    const chunk = moduleIds.slice(i, i + batchSize);
+    await Promise.allSettled(chunk.map((moduleId) => Asset.loadAsync(moduleId)));
+  }
+};
 
 type ConfigurationLineItem = {
   id: string;
@@ -97,8 +184,11 @@ type ConfigurationLineItem = {
 };
 
 export default function Index() {
-  const { width: screenWidth } = useWindowDimensions();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const isMobileLayout = screenWidth < 768;
+  const engravingReferenceHeight = isMobileLayout
+    ? Math.max(180, Math.min(430, screenHeight - 430))
+    : undefined;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [panel, setPanel] = useState<PanelState>(null);
   const [cardSize, setCardSize] = useState<{ width: number; height: number } | null>(null);
@@ -109,8 +199,12 @@ export default function Index() {
   const [engravingName, setEngravingName] = useState("");
   const [engravingPoliceId, setEngravingPoliceId] = useState("1");
   const [lettersName, setLettersName] = useState("");
+  const [lettersAppliedName, setLettersAppliedName] = useState("");
+  const [lettersValidationError, setLettersValidationError] = useState<string | null>(null);
   const [mobileNameEditorOpen, setMobileNameEditorOpen] = useState(false);
   const [engravingConfirmed, setEngravingConfirmed] = useState(false);
+  const [showCelebrationCig, setShowCelebrationCig] = useState(false);
+  const celebrationFade = useRef(new Animated.Value(0)).current;
 
   const clipModel = DEFAULT_CLIP_MODEL;
   const showEngravingControls =
@@ -123,8 +217,12 @@ export default function Index() {
   const hasChosenPersonalization = personalizationMode !== null;
 
   const getBeadConsumedLengthPx = (bead: CompositionBead) => {
+    const siliconeLentilleHeightMm =
+      bead.family === PERLES_SILICONE_ID && bead.shape === "lentille"
+        ? (bead.heightMm ?? 5)
+        : bead.size;
     const anchorReductionMm = (bead.topAnchorOffsetMm ?? 0) + (bead.bottomAnchorOffsetMm ?? 0);
-    const effectiveSizeMm = Math.max(0, bead.size - anchorReductionMm);
+    const effectiveSizeMm = Math.max(0, siliconeLentilleHeightMm - anchorReductionMm);
     return effectiveSizeMm * MM;
   };
 
@@ -160,9 +258,25 @@ export default function Index() {
     [composition, selectedBeadId],
   );
   const selectedBeadSizePx = selectedBead ? getBeadConsumedLengthPx(selectedBead) : 0;
-  const hasFormeInComposition = useMemo(
-    () => composition.some((bead) => bead.family === FORMES_ID),
+  const formesInComposition = useMemo(
+    () => composition.filter((bead) => bead.family === FORMES_ID),
     [composition],
+  );
+  const hasFormeInComposition = useMemo(
+    () => formesInComposition.length > 0,
+    [formesInComposition],
+  );
+  const existingFormeSizePx = useMemo(() => {
+    const existingForme = formesInComposition[0];
+    return existingForme ? getBeadConsumedLengthPx(existingForme) : 0;
+  }, [formesInComposition]);
+  const existingFormesTotalSizePx = useMemo(
+    () => formesInComposition.reduce((sum, bead) => sum + getBeadConsumedLengthPx(bead), 0),
+    [formesInComposition],
+  );
+  const existingLeafFormeCount = useMemo(
+    () => formesInComposition.filter((bead) => LEAF_FORME_VARIANT_IDS.has(bead.variantId ?? "")).length,
+    [formesInComposition],
   );
   const crochetCount = useMemo(
     () => composition.filter((bead) => bead.family === CROCHET_ID).length,
@@ -180,7 +294,7 @@ export default function Index() {
   const buildGeneratedLetterBeads = (nameValue: string): CompositionBead[] => {
     const letters = normalizeNameToLetters(nameValue);
     return letters
-      .map((letter) => getLettreVariantById(`lettre-${letter.toLowerCase()}`))
+      .map((letter) => getLettreVariantById(getLetterVariantIdFromChar(letter) ?? ""))
       .filter((variant): variant is NonNullable<typeof variant> => !!variant)
       .map((variant, index) => ({
         id: `generated-letter-slot-${index}`,
@@ -196,6 +310,13 @@ export default function Index() {
         label: variant.letter,
         generatedByName: true,
       }));
+  };
+
+  const canApplyLettersName = (baseComposition: CompositionBead[], nameValue: string) => {
+    const generatedLetters = buildGeneratedLetterBeads(nameValue);
+    const baseLengthPx = baseComposition.reduce((sum, bead) => sum + getBeadConsumedLengthPx(bead), 0);
+    const lettersLengthPx = generatedLetters.reduce((sum, bead) => sum + getBeadConsumedLengthPx(bead), 0);
+    return baseLengthPx + lettersLengthPx <= TEMPLATE_INNER_HEIGHT_PX;
   };
 
   const syncGeneratedLetters = (currentComposition: CompositionBead[], nameValue: string) => {
@@ -218,9 +339,9 @@ export default function Index() {
     }
 
     setComposition((prev) => {
-      return syncGeneratedLetters(prev, lettersName);
+      return syncGeneratedLetters(prev, lettersAppliedName);
     });
-  }, [lettersName, personalizationMode]);
+  }, [lettersAppliedName, personalizationMode]);
 
   useEffect(() => {
     if (!hasChosenPersonalization) return;
@@ -247,8 +368,89 @@ export default function Index() {
     }
   }, [isMobileLayout]);
 
+  useEffect(() => {
+    setComposition((prev) => {
+      let changed = false;
+      const next = prev.map((bead) => {
+        if (
+          bead.family === PERLES_SILICONE_ID &&
+          bead.shape === "lentille" &&
+          (bead.size !== 5 || bead.widthMm !== 12 || bead.heightMm !== 5)
+        ) {
+          changed = true;
+          return {
+            ...bead,
+            size: 5,
+            widthMm: 12,
+            heightMm: 5,
+          };
+        }
+        return bead;
+      });
+      return changed ? next : prev;
+    });
+  }, [composition]);
+
+  const hideCelebrationCig = () => {
+    setShowCelebrationCig(false);
+    celebrationFade.stopAnimation();
+    celebrationFade.setValue(0);
+  };
+
+  const showCelebrationCigWithFade = () => {
+    setShowCelebrationCig(true);
+    celebrationFade.stopAnimation();
+    celebrationFade.setValue(0);
+    Animated.timing(celebrationFade, {
+      toValue: 1,
+      duration: 260,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const runWarmup = async () => {
+      // Phase 1: assets visibles très tôt dans l'UI
+      const criticalAssets = uniqueModuleAssets([
+        clipModel.image,
+        require("../assets/images/loop.png"),
+        require("../assets/images/police ecriture.png"),
+        require("../assets/images/cig1.png"),
+        ...SILICONE_COLORS.map((color) => color.image),
+        ...SILICONE_COLORS.map((color) => getSiliconeLentilleImageByColorId(color.id)),
+        ...SILICONE_COLORS.map((color) => getSiliconeEtoileImageByColorId(color.id)),
+        ...SILICONE_COLORS.map((color) => getSiliconeHexImageByColorId(color.id)),
+        ...CROCHET_COLORS.map((color) => color.image ?? null),
+        ...FORMES_VARIANTS.map((variant) => variant.image),
+        ...WOOD_VARIANTS.map((variant) => variant.image ?? null),
+        ...LETTRES_SPECIALES_VARIANTS.map((variant) => variant.image),
+      ]);
+
+      if (!cancelled) {
+        await preloadModulesInBatches(criticalAssets);
+      }
+
+      // Phase 2: alphabets (utiles plus tard), en différé pour ne pas gêner le rendu initial
+      const secondaryAssets = uniqueModuleAssets(LETTRES_VARIANTS.map((variant) => variant.image));
+      if (!cancelled) {
+        await preloadModulesInBatches(secondaryAssets);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      void runWarmup();
+    }, 0);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [clipModel.image]);
+
   const handleFamilyOpen = (familyId: string) => {
-    if (!hasChosenPersonalization) return;
+    hideCelebrationCig();
     if (familyId === LETTRES_ID) return;
     if ([PERLES_SILICONE_ID, PERLES_BOIS_ID, CROCHET_ID, FORMES_ID, LETTRES_ID].includes(familyId)) {
       setSidebarOpen(false);
@@ -264,16 +466,20 @@ export default function Index() {
 
   // === Silicone ===
   const handleAddPerleSilicone = (colorId: string, variantId: string) => {
+    hideCelebrationCig();
     const color = getColorById(colorId);
     const variant = getVariantById(variantId);
     if (!color || !variant) return;
     const image =
       variant.shape === "lentille"
         ? getSiliconeLentilleImageByColorId(color.id)
+        : variant.id === "etoile-14"
+          ? getSiliconeEtoileImageByColorId(color.id) ?? color.image
         : variant.shape === "hexagone"
           ? getSiliconeHexImageByColorId(color.id) ?? color.image
           : color.image;
     const hexDimensions = variant.shape === "hexagone" ? getSiliconeHexDimensionsByColorId(color.id, 14) : null;
+    const lentilleDimensions = variant.shape === "lentille" ? { width: 12, height: 5 } : null;
     setComposition((prev) => [
       ...prev,
       {
@@ -284,8 +490,8 @@ export default function Index() {
         variantId: variant.id,
         colorId: color.id,
         size: variant.size,
-        widthMm: hexDimensions?.width,
-        heightMm: hexDimensions?.height,
+        widthMm: hexDimensions?.width ?? lentilleDimensions?.width,
+        heightMm: hexDimensions?.height ?? lentilleDimensions?.height,
         hex: color.hex,
         image,
       },
@@ -293,6 +499,7 @@ export default function Index() {
   };
 
   const handleReplacePerleSilicone = (colorId: string, variantId: string) => {
+    hideCelebrationCig();
     if (!selectedBeadId) return;
     const color = getColorById(colorId);
     const variant = getVariantById(variantId);
@@ -300,10 +507,13 @@ export default function Index() {
     const image =
       variant.shape === "lentille"
         ? getSiliconeLentilleImageByColorId(color.id)
+        : variant.id === "etoile-14"
+          ? getSiliconeEtoileImageByColorId(color.id) ?? color.image
         : variant.shape === "hexagone"
           ? getSiliconeHexImageByColorId(color.id) ?? color.image
           : color.image;
     const hexDimensions = variant.shape === "hexagone" ? getSiliconeHexDimensionsByColorId(color.id, 14) : null;
+    const lentilleDimensions = variant.shape === "lentille" ? { width: 12, height: 5 } : null;
     setComposition((prev) =>
       canReplaceWithinLengthLimit(prev, selectedBeadId, variant.size)
         ? prev.map((b) =>
@@ -319,8 +529,8 @@ export default function Index() {
                   topAnchorOffsetMm: undefined,
                   bottomAnchorOffsetMm: undefined,
                   imageAspectRatio: undefined,
-                  widthMm: hexDimensions?.width,
-                  heightMm: hexDimensions?.height,
+                  widthMm: hexDimensions?.width ?? lentilleDimensions?.width,
+                  heightMm: hexDimensions?.height ?? lentilleDimensions?.height,
                   hex: color.hex,
                   image,
                 }
@@ -334,6 +544,7 @@ export default function Index() {
 
   // === Bois ===
   const handleAddPerleBois = (variantId: string) => {
+    hideCelebrationCig();
     const variant = getWoodVariantById(variantId);
     if (!variant) return;
     const wood = WOOD_COLORS[0];
@@ -354,6 +565,7 @@ export default function Index() {
   };
 
   const handleReplacePerleBois = (variantId: string) => {
+    hideCelebrationCig();
     if (!selectedBeadId) return;
     const variant = getWoodVariantById(variantId);
     if (!variant) return;
@@ -386,13 +598,21 @@ export default function Index() {
 
   // === Formes ===
   const handleAddForme = (variantId: string) => {
+    hideCelebrationCig();
     const variant = getFormeVariantById(variantId);
     if (!variant) return;
     const dims = getFormeDimensionsByVariantId(variant.id);
     setComposition((prev) => {
-      const formeIndex = prev.findIndex((b) => b.family === FORMES_ID);
-      const nextForme = {
-        id: formeIndex >= 0 ? prev[formeIndex].id : newBeadId(),
+      const formeBeads = prev.filter((b) => b.family === FORMES_ID);
+      const firstForme = formeBeads[0];
+      const nonFormeBeads = prev.filter((b) => b.family !== FORMES_ID);
+      const firstFormeIndex = prev.findIndex((b) => b.family === FORMES_ID);
+      const insertionIndex = firstFormeIndex >= 0 ? firstFormeIndex : nonFormeBeads.length;
+      const existingLeafFormes = formeBeads.filter((bead) => LEAF_FORME_VARIANT_IDS.has(bead.variantId ?? ""));
+      const selectedIsLeaf = LEAF_FORME_VARIANT_IDS.has(variant.id);
+
+      const createFormeBead = (id: string) => ({
+        id,
         family: FORMES_ID,
         shape: variant.shape,
         material: "silicone" as const,
@@ -405,17 +625,33 @@ export default function Index() {
         heightMm: dims?.height,
         hex: "#d4a574",
         image: variant.image,
-      };
+      });
 
-      if (formeIndex >= 0) {
-        return prev.map((bead, index) => (index === formeIndex ? nextForme : bead));
+      const allExistingAreLeaf = formeBeads.length > 0 && existingLeafFormes.length === formeBeads.length;
+      const canAddSecondLeaf = selectedIsLeaf && allExistingAreLeaf && formeBeads.length === 1;
+
+      if (canAddSecondLeaf) {
+        const nextFormes = [...formeBeads, createFormeBead(newBeadId())];
+        return [
+          ...nonFormeBeads.slice(0, insertionIndex),
+          ...nextFormes,
+          ...nonFormeBeads.slice(insertionIndex),
+        ];
       }
 
-      return [...prev, nextForme];
+      const replacementId = firstForme?.id ?? newBeadId();
+      const nextFormes = [createFormeBead(replacementId)];
+
+      return [
+        ...nonFormeBeads.slice(0, insertionIndex),
+        ...nextFormes,
+        ...nonFormeBeads.slice(insertionIndex),
+      ];
     });
   };
 
   const handleReplaceForme = (variantId: string) => {
+    hideCelebrationCig();
     if (!selectedBeadId) return;
     const variant = getFormeVariantById(variantId);
     if (!variant) return;
@@ -456,6 +692,7 @@ export default function Index() {
 
   // === Lettres ===
   const handleAddLettre = (variantId: string) => {
+    hideCelebrationCig();
     const variant = getLettreVariantById(variantId);
     if (!variant) return;
     setComposition((prev) => [
@@ -477,6 +714,7 @@ export default function Index() {
   };
 
   const handleReplaceLettre = (variantId: string) => {
+    hideCelebrationCig();
     if (!selectedBeadId) return;
     const variant = getLettreVariantById(variantId);
     if (!variant) return;
@@ -507,6 +745,7 @@ export default function Index() {
 
   // === Crochet ===
   const handleAddCrochet = (colorId: string) => {
+    hideCelebrationCig();
     const color = CROCHET_COLORS.find((c) => c.id === colorId);
     if (!color) return;
     if (crochetCount >= MAX_CROCHET_BEADS) return;
@@ -527,6 +766,7 @@ export default function Index() {
   };
 
   const handleReplaceCrochet = (colorId: string) => {
+    hideCelebrationCig();
     if (!selectedBeadId) return;
     const color = CROCHET_COLORS.find((c) => c.id === colorId);
     if (!color) return;
@@ -563,15 +803,44 @@ export default function Index() {
     setPanel(null);
   };
 
-  const handleBeadTap = (beadId: string) => setSelectedBeadId(beadId);
+  const handleBeadTap = (beadId: string) => {
+    hideCelebrationCig();
+    setSelectedBeadId(beadId);
+  };
 
   const handleDeleteSelectedBead = () => {
+    hideCelebrationCig();
     if (!selectedBeadId) return;
     setComposition((prev) => prev.filter((b) => b.id !== selectedBeadId));
     setSelectedBeadId(null);
   };
 
+  const handleDuplicateSelectedBead = () => {
+    hideCelebrationCig();
+    if (!selectedBead) return;
+    if (selectedBead.family === FORMES_ID) return;
+    if (selectedBead.family === CROCHET_ID && crochetCount >= MAX_CROCHET_BEADS) return;
+    if (totalLengthPx + selectedBeadSizePx > TEMPLATE_INNER_HEIGHT_PX) return;
+
+    const duplicatedBead: CompositionBead = {
+      ...selectedBead,
+      id: newBeadId(),
+      generatedByName: false,
+    };
+
+    setComposition((prev) => {
+      const index = prev.findIndex((bead) => bead.id === selectedBead.id);
+      if (index < 0) return prev;
+      const next = [...prev];
+      next.splice(index + 1, 0, duplicatedBead);
+      return next;
+    });
+    setSelectedBeadId(null);
+    setPanel(null);
+  };
+
   const moveSelectedBead = (direction: -1 | 1) => {
+    hideCelebrationCig();
     if (!selectedBeadId) return;
     setComposition((prev) => {
       const index = prev.findIndex((b) => b.id === selectedBeadId);
@@ -586,6 +855,7 @@ export default function Index() {
   };
 
   const handleReplaceRequest = () => {
+    hideCelebrationCig();
     if (!selectedBead) return;
     if (selectedBead.generatedByName) return;
     if ([PERLES_SILICONE_ID, PERLES_BOIS_ID, CROCHET_ID, FORMES_ID, LETTRES_ID].includes(selectedBead.family)) {
@@ -595,6 +865,20 @@ export default function Index() {
 
   const isReplaceMode = panel?.mode === "replace";
   const menuVisible = !!selectedBead && !panel;
+  const canDuplicateSelectedBead = !!selectedBead && selectedBead.family !== FORMES_ID && (selectedBead.family !== CROCHET_ID || crochetCount < MAX_CROCHET_BEADS) && totalLengthPx + selectedBeadSizePx <= TEMPLATE_INNER_HEIGHT_PX;
+  const showMobileActionBar =
+    isMobileLayout &&
+    !panel &&
+    !showEngravingControls &&
+    !showLettersControls;
+  const showCreationCaptureBanner =
+    isMobileLayout &&
+    isCreationComplete &&
+    !sidebarOpen &&
+    !panel &&
+    !selectedBeadId &&
+    !showEngravingControls &&
+    !showLettersControls;
   const canUseCrochetInCurrentContext = !isReplaceMode
     ? crochetCount < MAX_CROCHET_BEADS
     : (selectedBead?.family === CROCHET_ID) || crochetCount < MAX_CROCHET_BEADS;
@@ -632,11 +916,11 @@ export default function Index() {
       });
     }
 
-    if (personalizationMode === "letters" && lettersName.trim()) {
+    if (personalizationMode === "letters" && lettersAppliedName.trim()) {
       rawItems.push({
         id: "letters",
         anchorYRatio: clampRatio((CLIP_SIZE_PX * 0.42) / NATURAL_HEIGHT),
-        text: normalizeNameToLetters(lettersName).join("") || lettersName.trim(),
+        text: normalizeNameToLetters(lettersAppliedName).join("") || lettersAppliedName.trim(),
       });
     }
 
@@ -700,15 +984,10 @@ export default function Index() {
     });
 
     return adjusted;
-  }, [composition, engravingName, engravingPoliceId, lettersName, personalizationMode]);
-
-  const completionNoticeTopRatio = useMemo(() => {
-    if (!configurationItems.length) return 0.78;
-    const maxAnchor = Math.max(...configurationItems.map((item) => item.anchorYRatio));
-    return Math.min(0.88, maxAnchor + 0.06);
-  }, [configurationItems]);
+  }, [composition, engravingName, engravingPoliceId, lettersAppliedName, personalizationMode]);
 
   const handleSelectPersonalizationMode = (mode: PersonalizationMode) => {
+    hideCelebrationCig();
     setPersonalizationMode(mode);
 
     if (isMobileLayout) {
@@ -730,6 +1009,34 @@ export default function Index() {
     setEngravingConfirmed(true);
     setMobileNameEditorOpen(false);
     setModeCardsExpanded(false);
+    showCelebrationCigWithFade();
+  };
+
+  const handleValidateLettersSelection = () => {
+    if (!lettersName.trim()) return;
+
+    const baseComposition = composition.filter((bead) => !bead.generatedByName);
+    if (!canApplyLettersName(baseComposition, lettersName)) {
+      setLettersValidationError(
+        "Cette configuration dépasse la longueur maximale autorisée. Le prénom est trop long pour cette composition. Veuillez retirer quelques perles ou choisir un prénom plus court.",
+      );
+      return;
+    }
+
+    setLettersValidationError(null);
+    setLettersAppliedName(lettersName);
+    Keyboard.dismiss();
+    setMobileNameEditorOpen(false);
+    setModeCardsExpanded(false);
+    showCelebrationCigWithFade();
+  };
+
+  const handleBackToPersonalizationChoices = () => {
+    hideCelebrationCig();
+    Keyboard.dismiss();
+    setMobileNameEditorOpen(false);
+    setModeCardsExpanded(true);
+    setPersonalizationMode(null);
   };
 
   return (
@@ -741,7 +1048,7 @@ export default function Index() {
 
         {(!isMobileLayout || modeCardsExpanded) && (
           <View style={[styles.modePanel, isMobileLayout && styles.modePanelMobile]}>
-            <Text style={styles.modeTitle}>Souhaitez-vous personnaliser votre attache avec un prenom ?</Text>
+            <Text style={styles.modeTitle}>Souhaitez-vous personnaliser votre attache-tétine avec un prénom ?</Text>
             {modeCardsExpanded ? (
               <View style={styles.modeCardsWrap}>
                 {PERSONALIZATION_OPTIONS.map((option) => {
@@ -752,8 +1059,10 @@ export default function Index() {
                       testID={`personalization-mode-${option.id}`}
                       style={[styles.modeCard, selected && styles.modeCardSelected]}
                       onPress={() => handleSelectPersonalizationMode(option.id)}
+                      hitSlop={8}
+                      pressRetentionOffset={12}
                     >
-                      <Text style={styles.modeEmoji}>{option.emoji}</Text>
+                      <Image source={option.icon} style={styles.modeEmoji} resizeMode="contain" />
                       <Text style={[styles.modeCardTitle, selected && styles.modeCardTitleSelected]}>{option.title}</Text>
                       <Text style={styles.modeCardDescription}>{option.description}</Text>
                     </Pressable>
@@ -773,6 +1082,8 @@ export default function Index() {
                     testID="personalization-mode-change"
                     style={styles.modeCollapsedButton}
                     onPress={() => setModeCardsExpanded(true)}
+                    hitSlop={8}
+                    pressRetentionOffset={12}
                   >
                     <Text style={styles.modeCollapsedButtonText}>Changer</Text>
                   </Pressable>
@@ -784,7 +1095,85 @@ export default function Index() {
 
         {showEngravingControls && (
           <View style={styles.engravingPanel}>
-            <Text style={styles.engravingTitle}>Prénom à graver</Text>
+            <View style={styles.engravingActionsRow}>
+              <Pressable
+                testID="engraving-back-button"
+                style={styles.backToModeButton}
+                onPress={handleBackToPersonalizationChoices}
+                hitSlop={8}
+                pressRetentionOffset={12}
+              >
+                <Ionicons name="arrow-back" size={16} color="#5a4b3c" />
+                <Text style={styles.backToModeButtonText}>Retour</Text>
+              </Pressable>
+
+              <Pressable
+                testID="engraving-validate-button"
+                style={[
+                  styles.topValidateButton,
+                  !engravingName.trim() && styles.topValidateButtonDisabled,
+                ]}
+                onPress={handleValidateEngravingSelection}
+                disabled={!engravingName.trim()}
+                hitSlop={8}
+                pressRetentionOffset={12}
+              >
+                <Text
+                  style={[
+                    styles.topValidateButtonText,
+                    !engravingName.trim() && styles.topValidateButtonTextDisabled,
+                  ]}
+                >
+                  Valider
+                </Text>
+                <Ionicons
+                  name="arrow-forward"
+                  size={16}
+                  color={!engravingName.trim() ? "#aa9b88" : "#5a4b3c"}
+                />
+              </Pressable>
+            </View>
+
+            <Text style={styles.engravingTitle}>Étape 1 : Choisissez une police d'écriture</Text>
+            <View style={[styles.policeSelectorGrid, isMobileLayout && styles.policeSelectorGridMobile]} testID="engraving-police-grid">
+              {Array.from({ length: 13 }, (_, index) => {
+                const policeId = String(index + 1);
+                const selected = engravingPoliceId === policeId;
+                return (
+                  <Pressable
+                    key={policeId}
+                    testID={`engraving-police-${policeId}`}
+                    style={[styles.policeChip, isMobileLayout && styles.policeChipMobile, selected && styles.policeChipActive]}
+                    onPress={() => {
+                      setEngravingPoliceId(policeId);
+                      if (engravingConfirmed) {
+                        setEngravingConfirmed(false);
+                      }
+                    }}
+                    hitSlop={8}
+                    pressRetentionOffset={12}
+                  >
+                    <Text style={[styles.policeChipText, isMobileLayout && styles.policeChipTextMobile, selected && styles.policeChipTextActive]}>
+                      {policeId}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <View style={[styles.policeReferenceWrap, isMobileLayout && styles.policeReferenceWrapMobile]}>
+              <Image
+                source={require("../assets/images/police ecriture.png")}
+                style={[
+                  styles.policeReferenceImage,
+                  isMobileLayout && styles.policeReferenceImageMobile,
+                  isMobileLayout && engravingReferenceHeight ? { height: engravingReferenceHeight } : null,
+                ]}
+                resizeMode="contain"
+              />
+            </View>
+
+            <Text style={[styles.engravingTitle, { marginTop: 12 }]}>Étape 2 : Saisissez le prénom</Text>
             <TextInput
               testID="engraving-name-input"
               style={styles.engravingInput}
@@ -803,66 +1192,61 @@ export default function Index() {
               autoCapitalize="words"
               maxLength={20}
             />
-            <View style={styles.policeReferenceWrap}>
-              <Image
-                source={require("../assets/images/police ecriture.png")}
-                style={styles.policeReferenceImage}
-                resizeMode="contain"
-              />
-            </View>
-
-            <View style={styles.policeSelectorGrid} testID="engraving-police-grid">
-              {Array.from({ length: 13 }, (_, index) => {
-                const policeId = String(index + 1);
-                const selected = engravingPoliceId === policeId;
-                return (
-                  <Pressable
-                    key={policeId}
-                    testID={`engraving-police-${policeId}`}
-                    style={[styles.policeChip, selected && styles.policeChipActive]}
-                    onPress={() => {
-                      setEngravingPoliceId(policeId);
-                      if (engravingConfirmed) {
-                        setEngravingConfirmed(false);
-                      }
-                    }}
-                  >
-                    <Text style={[styles.policeChipText, selected && styles.policeChipTextActive]}>
-                      {policeId}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {isMobileLayout && (
-              <Pressable
-                testID="engraving-validate-button"
-                style={[styles.engravingValidateButton, !engravingName.trim() && styles.engravingValidateButtonDisabled]}
-                onPress={handleValidateEngravingSelection}
-                disabled={!engravingName.trim()}
-              >
-                <Text
-                  style={[
-                    styles.engravingValidateButtonText,
-                    !engravingName.trim() && styles.engravingValidateButtonTextDisabled,
-                  ]}
-                >
-                  ✓ Valider la gravure
-                </Text>
-              </Pressable>
-            )}
           </View>
         )}
 
         {showLettersControls && (
           <View style={styles.engravingPanel}>
-            <Text style={styles.engravingTitle}>Prenom en lettres bois</Text>
+            <View style={styles.engravingActionsRow}>
+              <Pressable
+                testID="letters-back-button"
+                style={styles.backToModeButton}
+                onPress={handleBackToPersonalizationChoices}
+                hitSlop={8}
+                pressRetentionOffset={12}
+              >
+                <Ionicons name="arrow-back" size={16} color="#5a4b3c" />
+                <Text style={styles.backToModeButtonText}>Retour</Text>
+              </Pressable>
+
+              <Pressable
+                testID="letters-validate-button"
+                style={[
+                  styles.topValidateButton,
+                  !lettersName.trim() && styles.topValidateButtonDisabled,
+                ]}
+                onPress={handleValidateLettersSelection}
+                disabled={!lettersName.trim()}
+                hitSlop={8}
+                pressRetentionOffset={12}
+              >
+                <Text
+                  style={[
+                    styles.topValidateButtonText,
+                    !lettersName.trim() && styles.topValidateButtonTextDisabled,
+                  ]}
+                >
+                  Valider
+                </Text>
+                <Ionicons
+                  name="arrow-forward"
+                  size={16}
+                  color={!lettersName.trim() ? "#aa9b88" : "#5a4b3c"}
+                />
+              </Pressable>
+            </View>
+
+            <Text style={styles.engravingTitle}>Prénom en lettres en bois</Text>
             <TextInput
               testID="letters-name-input"
               style={styles.engravingInput}
               value={lettersName}
-              onChangeText={setLettersName}
+              onChangeText={(value) => {
+                setLettersName(value);
+                if (lettersValidationError) {
+                  setLettersValidationError(null);
+                }
+              }}
               onSubmitEditing={(event) => handleFinalizeMobileNameInput(event.nativeEvent.text)}
               onEndEditing={(event) => handleFinalizeMobileNameInput(event.nativeEvent.text)}
               placeholder="Ex: Charlotte"
@@ -872,15 +1256,20 @@ export default function Index() {
               maxLength={20}
             />
             <Text style={styles.lettersHint}>
-              Les lettres sont generees automatiquement sur l'attache en temps reel.
+              Les lettres sont ajoutées après validation, dans la limite de longueur autorisée.
             </Text>
+            {lettersValidationError ? (
+              <View style={styles.lettersErrorBox}>
+                <Text style={styles.lettersErrorText}>{lettersValidationError}</Text>
+              </View>
+            ) : null}
           </View>
         )}
 
         {!hideWorkspaceWhileEngravingEditor && (
           <View style={[styles.cardWrap, isMobileLayout && styles.cardWrapMobile]}>
             <View
-              style={styles.card}
+              style={[styles.card, isMobileLayout && styles.cardMobile]}
               testID="workspace-card"
               onLayout={(e) => {
                 const { width, height } = e.nativeEvent.layout;
@@ -893,12 +1282,28 @@ export default function Index() {
                     <Workspace
                       composition={composition}
                       availableWidth={Math.max(160, cardSize.width * 0.56)}
-                      availableHeight={cardSize.height - 40}
+                      availableHeight={cardSize.height - (isMobileLayout ? 24 : 40)}
                       onBeadPress={handleBeadTap}
                       selectedBeadId={selectedBeadId}
                       clipModel={clipModel}
+                      showEngravingPreview={personalizationMode === "engraving"}
+                      engravingPreviewText="Votre prénom"
                     />
                   </View>
+
+                  {showCelebrationCig ? (
+                    <Animated.View
+                      pointerEvents="none"
+                      style={[styles.workspaceCelebrationCig, { opacity: celebrationFade }]}
+                      testID="workspace-cig1-celebration"
+                    >
+                      <Image
+                        source={require("../assets/images/cig1.png")}
+                        style={styles.workspaceCelebrationCigImage}
+                        resizeMode="contain"
+                      />
+                    </Animated.View>
+                  ) : null}
 
                   <View style={styles.workspaceLegendLayer} pointerEvents="none" testID="live-configuration-panel">
                     {configurationItems.length === 0 ? (
@@ -921,23 +1326,8 @@ export default function Index() {
                         </View>
                       ))
                     )}
-
-                    {isCreationComplete ? (
-                      <View
-                        style={[
-                          styles.completionNotice,
-                          {
-                            top: `${Math.round(completionNoticeTopRatio * 10000) / 100}%`,
-                          },
-                        ]}
-                      >
-                        <Text style={styles.completionNoticeTitle}>✨ Votre création prend vie !</Text>
-                        <Text style={styles.completionNoticeBody}>
-                          Si elle vous plaît, faites simplement une capture d'écran et envoyez-la-moi. Je pourrai réaliser votre attache-tétine exactement selon votre création et vous accompagner pour finaliser votre commande.
-                        </Text>
-                      </View>
-                    ) : null}
                   </View>
+
                 </View>
               )}
             </View>
@@ -945,7 +1335,16 @@ export default function Index() {
         )}
       </SafeAreaView>
 
-      {isMobileLayout && (
+      {showCreationCaptureBanner ? (
+        <View style={styles.creationCaptureBanner} pointerEvents="none" testID="creation-capture-banner">
+          <Text style={styles.creationCaptureBannerTitle}>✨ Création terminée ?</Text>
+          <Text style={styles.creationCaptureBannerBody}>
+            📸 Faites une capture d'écran de votre création, puis envoyez-la-moi afin que je puisse réaliser votre attache-tétine.
+          </Text>
+        </View>
+      ) : null}
+
+      {showMobileActionBar && (
         <View style={styles.mobileActionBar} pointerEvents="box-none">
           {composition.length === 0 ? (
             <View style={styles.mobileStartHintWrap} pointerEvents="none" testID="mobile-start-hint">
@@ -958,19 +1357,31 @@ export default function Index() {
             </View>
           ) : null}
           <View style={styles.mobileActionBarInner}>
-            <Pressable style={styles.mobileActionBtn} onPress={() => setSidebarOpen(true)} testID="mobile-action-perles">
+            <Pressable
+              style={styles.mobileActionBtn}
+              onPress={() => {
+                hideCelebrationCig();
+                setSidebarOpen(true);
+              }}
+              testID="mobile-action-perles"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              pressRetentionOffset={12}
+            >
               <Ionicons name="ellipse-outline" size={18} color="#5a4b3c" />
               <Text style={styles.mobileActionText}>Perles</Text>
             </Pressable>
             <Pressable
               style={styles.mobileActionBtn}
               onPress={() => {
+                hideCelebrationCig();
                 setModeCardsExpanded(true);
                 if (personalizationMode === "engraving" || personalizationMode === "letters") {
                   setMobileNameEditorOpen(true);
                 }
               }}
               testID="mobile-action-prenom"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              pressRetentionOffset={12}
             >
               <Ionicons name="text" size={18} color="#5a4b3c" />
               <Text style={styles.mobileActionText}>Prénom</Text>
@@ -1018,6 +1429,10 @@ export default function Index() {
         mode={panel?.mode ?? "add"}
         currentLengthPx={totalLengthPx}
         excludeBeadSizePx={isReplaceMode ? selectedBeadSizePx : 0}
+        existingFormeSizePx={existingFormeSizePx}
+        existingFormesTotalSizePx={existingFormesTotalSizePx}
+        existingFormeCount={formesInComposition.length}
+        existingLeafFormeCount={existingLeafFormeCount}
         hasExistingForme={hasFormeInComposition}
         onClose={() => {
           setPanel(null);
@@ -1070,6 +1485,8 @@ export default function Index() {
             : null
         }
         onReplace={selectedBead?.family === LETTRES_ID ? undefined : handleReplaceRequest}
+        onDuplicate={handleDuplicateSelectedBead}
+        canDuplicate={canDuplicateSelectedBead}
         onDelete={handleDeleteSelectedBead}
         onMoveUp={selectedBead ? () => moveSelectedBead(-1) : undefined}
         onMoveDown={selectedBead ? () => moveSelectedBead(1) : undefined}
@@ -1156,7 +1573,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   modeEmoji: {
-    fontSize: 16,
+    width: 16,
+    height: 16,
     marginBottom: 4,
   },
   modeCardTitle: {
@@ -1184,6 +1602,47 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
+  engravingActionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  backToModeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: "#f5efe4",
+    marginBottom: 8,
+  },
+  backToModeButtonText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#5a4b3c",
+  },
+  topValidateButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: "#f5efe4",
+  },
+  topValidateButtonDisabled: {
+    backgroundColor: "#e3d8c8",
+  },
+  topValidateButtonText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#5a4b3c",
+  },
+  topValidateButtonTextDisabled: {
+    color: "#aa9b88",
+  },
   engravingTitle: {
     fontSize: 14,
     fontWeight: "700",
@@ -1209,67 +1668,84 @@ const styles = StyleSheet.create({
     borderColor: "#efe1cf",
     padding: 6,
   },
+  policeReferenceWrapMobile: {
+    marginTop: 8,
+    padding: 4,
+    borderRadius: 14,
+  },
   policeReferenceImage: {
     width: "100%",
     height: 300,
   },
+  policeReferenceImageMobile: {
+    height: 430,
+  },
   policeSelectorGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 6,
+    justifyContent: "space-between",
     marginTop: 10,
   },
+  policeSelectorGridMobile: {
+    flexWrap: "nowrap",
+    marginTop: 6,
+  },
   policeChip: {
-    width: "14.8%",
-    aspectRatio: 0.9,
+    width: "13.8%",
+    aspectRatio: 1,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "#eadfce",
     backgroundColor: "#fffaf4",
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 6,
+  },
+  policeChipMobile: {
+    width: "7%",
+    minWidth: 22,
+    maxWidth: 28,
+    marginBottom: 0,
+    borderRadius: 8,
   },
   policeChipActive: {
     borderColor: "#b48a5c",
     backgroundColor: "#f9ecdc",
   },
   policeChipText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "700",
     color: "#7d6a55",
   },
+  policeChipTextMobile: {
+    fontSize: 10,
+  },
   policeChipTextActive: {
     color: "#5a4b3c",
-  },
-  engravingValidateButton: {
-    alignSelf: "center",
-    width: "82%",
-    marginTop: 14,
-    borderRadius: 999,
-    backgroundColor: "#5a4b3c",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-  },
-  engravingValidateButtonDisabled: {
-    backgroundColor: "#e3d8c8",
-  },
-  engravingValidateButtonText: {
-    color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  engravingValidateButtonTextDisabled: {
-    color: "#aa9b88",
   },
   lettersHint: {
     marginTop: 8,
     fontSize: 12,
     color: "#8a7a67",
   },
+  lettersErrorBox: {
+    marginTop: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e8c6c6",
+    backgroundColor: "#fff4f4",
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  lettersErrorText: {
+    fontSize: 12,
+    lineHeight: 16,
+    color: "#9b3f3f",
+    fontWeight: "600",
+  },
   cardWrap: { flex: 1, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 16 },
   cardWrapMobile: {
-    paddingBottom: 92,
+    paddingBottom: 170,
   },
   card: {
     flex: 1,
@@ -1286,6 +1762,10 @@ const styles = StyleSheet.create({
     elevation: 3,
     position: "relative",
   },
+  cardMobile: {
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+  },
   workspaceScene: {
     flex: 1,
     width: "100%",
@@ -1296,6 +1776,22 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     justifyContent: "center",
     paddingLeft: 4,
+    zIndex: 1,
+  },
+  workspaceCelebrationCig: {
+    position: "absolute",
+    right: 0,
+    bottom: 0,
+    width: "50%",
+    height: "50%",
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
+    zIndex: 1,
+  },
+  workspaceCelebrationCigImage: {
+    width: "100%",
+    height: "100%",
+    opacity: 0.92,
   },
   workspaceLegendLayer: {
     position: "absolute",
@@ -1303,6 +1799,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: "48%",
+    zIndex: 2,
   },
   configurationEmpty: {
     fontSize: 10,
@@ -1321,30 +1818,6 @@ const styles = StyleSheet.create({
     lineHeight: 12,
     fontWeight: "600",
     color: "#6f5d4c",
-  },
-  completionNotice: {
-    position: "absolute",
-    left: -22,
-    right: -10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#a3ba9e",
-    backgroundColor: "rgba(255, 252, 247, 0.96)",
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    minHeight: 74,
-  },
-  completionNoticeTitle: {
-    fontSize: 10,
-    lineHeight: 13,
-    fontWeight: "700",
-    color: "#6b5a49",
-    marginBottom: 4,
-  },
-  completionNoticeBody: {
-    fontSize: 9,
-    lineHeight: 13,
-    color: "#8e7f6f",
   },
   configurationNote: {
     marginTop: 3,
@@ -1408,5 +1881,36 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700",
     color: "#5a4b3c",
+  },
+  creationCaptureBanner: {
+    position: "absolute",
+    left: 12,
+    right: 12,
+    bottom: 116,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(213, 227, 209, 0.9)",
+    backgroundColor: "rgba(255, 255, 255, 0.76)",
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 4,
+    zIndex: 40,
+  },
+  creationCaptureBannerTitle: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: "700",
+    color: "#5a4b3c",
+    marginBottom: 2,
+  },
+  creationCaptureBannerBody: {
+    fontSize: 11,
+    lineHeight: 15,
+    color: "#7d6d5d",
+    fontWeight: "500",
   },
 });

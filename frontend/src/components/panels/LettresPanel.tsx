@@ -15,7 +15,7 @@ import Animated, {
 import { Ionicons } from "@expo/vector-icons";
 
 import FanBead from "./FanBead";
-import { LETTRES_VARIANTS } from "../../data/lettres-beads";
+import { LETTRES_SPECIALES_VARIANTS, LETTRES_VARIANTS } from "../../data/lettres-beads";
 import { MM } from "../../constants/sizes";
 import { TEMPLATE_INNER_HEIGHT_PX } from "../Workspace";
 
@@ -31,6 +31,20 @@ type FanLayout = {
 };
 
 const getFanLayout = (letterCount: number): FanLayout => {
+  if (letterCount >= 35) {
+    return {
+      arcs: [
+        { count: 10, radius: 82 },
+        { count: 10, radius: 136 },
+        { count: 10, radius: 190 },
+        { count: 10, radius: 244 },
+      ],
+      beadVisualSize: LETTER_VISUAL_SIZE,
+      fanWidth: 390,
+      fanHeight: 250,
+    };
+  }
+
   if (letterCount >= 20) {
     return {
       arcs: [
@@ -105,9 +119,10 @@ export default function LettresPanel({
 
   const panelStyle = useAnimatedStyle(() => ({ transform: [{ translateY: translateY.value }] }));
   const backdropStyle = useAnimatedStyle(() => ({ opacity: backdropOpacity.value * 0.18 }));
+  const allLetterVariants = [...LETTRES_VARIANTS, ...LETTRES_SPECIALES_VARIANTS];
 
   const selectedVariant = useMemo(
-    () => LETTRES_VARIANTS.find((v) => v.id === selectedVariantId) ?? null,
+    () => allLetterVariants.find((v) => v.id === selectedVariantId) ?? null,
     [selectedVariantId],
   );
 
@@ -117,7 +132,7 @@ export default function LettresPanel({
   const remainingMm = Math.max(0, remainingPx / MM);
   const isReplaceMode = mode === "replace";
 
-  const layout = useMemo(() => getFanLayout(LETTRES_VARIANTS.length), []);
+  const layout = useMemo(() => getFanLayout(allLetterVariants.length), [allLetterVariants.length]);
   const CX = layout.fanWidth / 2;
   const CY = layout.fanHeight - 15;
 
@@ -133,11 +148,11 @@ export default function LettresPanel({
   };
 
   const arcSlices = useMemo(() => {
-    const result: { variants: typeof LETTRES_VARIANTS; radius: number }[] = [];
+    const result: { variants: typeof allLetterVariants; radius: number }[] = [];
     let cursor = 0;
     for (const arc of layout.arcs) {
       result.push({
-        variants: LETTRES_VARIANTS.slice(cursor, cursor + arc.count),
+        variants: allLetterVariants.slice(cursor, cursor + arc.count),
         radius: arc.radius,
       });
       cursor += arc.count;
@@ -177,7 +192,7 @@ export default function LettresPanel({
 
         <View style={styles.fanWrap}>
           <View style={[styles.fan, { width: layout.fanWidth, height: layout.fanHeight }]} testID="lettres-fan">
-            {arcSlices.map((slice) =>
+              {arcSlices.map((slice) =>
               slice.variants.map((variant, index) => {
                 const { x, y } = beadPos(index, slice.variants.length, slice.radius);
                 return (
