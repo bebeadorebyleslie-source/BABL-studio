@@ -22,12 +22,15 @@ import { MM } from "../../constants/sizes";
 import { TEMPLATE_INNER_HEIGHT_PX } from "../Workspace";
 
 const PANEL_HEIGHT = 430;
+const LEAF_FORME_VARIANT_IDS = new Set(["forme-feuillesiliconebas", "forme-feuillesiliconehaut"]);
 
 type Props = {
   visible: boolean;
   mode?: "add" | "replace";
   currentLengthPx?: number;
   excludeBeadSizePx?: number;
+  existingFormeCount?: number;
+  existingLeafFormeCount?: number;
   hasExistingForme?: boolean;
   onClose: () => void;
   onAddBead: (variantId: string) => void;
@@ -101,6 +104,8 @@ export default function FormesPanel({
   mode = "add",
   currentLengthPx = 0,
   excludeBeadSizePx = 0,
+  existingFormeCount = 0,
+  existingLeafFormeCount = 0,
   hasExistingForme = false,
   onClose,
   onAddBead,
@@ -140,9 +145,17 @@ export default function FormesPanel({
   const willFit = selectedVariant ? selectedVariantEffectivePx <= remainingPx : true;
   const remainingMm = Math.max(0, remainingPx / MM);
   const isReplaceMode = mode === "replace";
+  const selectedIsLeaf = LEAF_FORME_VARIANT_IDS.has(selectedVariant?.id ?? "");
+  const allExistingFormesAreLeaves =
+    existingFormeCount > 0 && existingLeafFormeCount === existingFormeCount;
+  const canAddLeafInAddMode =
+    !isReplaceMode &&
+    selectedIsLeaf &&
+    existingLeafFormeCount < 2 &&
+    (existingFormeCount === 0 || allExistingFormesAreLeaves);
 
   const canSubmit = !!selectedVariant && willFit;
-  const isReplaceFormeCta = hasExistingForme && !isReplaceMode;
+  const isReplaceFormeCta = hasExistingForme && !isReplaceMode && !canAddLeafInAddMode;
   const isGreenCta = isReplaceFormeCta || isReplaceMode;
   const submitLabel = !willFit && selectedVariant
     ? isReplaceMode
@@ -150,6 +163,8 @@ export default function FormesPanel({
       : `Plus de place (reste ${Math.floor(remainingMm)} mm)`
     : isReplaceMode
       ? "Remplacer"
+      : canAddLeafInAddMode
+        ? "Ajouter la forme"
       : hasExistingForme
         ? "Remplacer la forme"
         : "Ajouter à mon attache";
@@ -172,7 +187,13 @@ export default function FormesPanel({
               {selectedVariant ? `Forme · ${selectedVariant.label}` : "Choisissez une forme"}
             </Text>
             {hasExistingForme && !isReplaceMode ? (
-              <Text style={styles.limitHint}>Une seule forme est autorisée. Toute nouvelle sélection remplacera la forme actuelle.</Text>
+              <Text style={styles.limitHint}>
+                {selectedIsLeaf
+                  ? existingLeafFormeCount >= 2 && allExistingFormesAreLeaves
+                    ? "Maximum 2 feuilles silicone. Une nouvelle sélection remplacera une feuille existante."
+                    : "Vous pouvez ajouter jusqu'à 2 feuilles silicone."
+                  : "Une seule forme est autorisée. Toute nouvelle sélection remplacera la forme actuelle."}
+              </Text>
             ) : null}
           </View>
           <TouchableOpacity testID="formes-close-button" style={styles.closeBtn} onPress={onClose}>

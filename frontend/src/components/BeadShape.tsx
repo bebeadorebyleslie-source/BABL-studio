@@ -56,6 +56,11 @@ export default function BeadShape({
   renderHeightPx,
 }: Props) {
   const isSiliconeLeaf = shape === "feuillesiliconebas" || shape === "feuillesiliconehaut";
+  const normalizedHex = hex.replace("#", "").toLowerCase();
+  const isWhiteSiliconeLentille =
+    material === "silicone" &&
+    shape === "lentille" &&
+    (normalizedHex === "e8e7e5" || normalizedHex === "ffffff");
   const shouldRenderImage =
     !!image &&
     ((material === "silicone" && (shape === "ronde" || shape === "hexagone" || shape === "lentille" || isSiliconeLeaf)) ||
@@ -65,16 +70,30 @@ export default function BeadShape({
   if (shouldRenderImage) {
     const imageWidthPx = renderWidthPx ?? (shape === "lentille" ? size * 2.2 : isSiliconeLeaf ? size * 0.8 : size);
     const imageHeightPx = renderHeightPx ?? size;
-    return (
-      <Image
-        source={image}
-        style={{
+    const lentilleWhiteBackplateStyle = isWhiteSiliconeLentille
+      ? {
           width: imageWidthPx,
           height: imageHeightPx,
-          transform: rotationDeg ? [{ rotate: `${rotationDeg}deg` }] : undefined,
-        }}
-        resizeMode="contain"
-      />
+          borderRadius: imageHeightPx / 2,
+          borderWidth: 1,
+          borderColor: "#d6c8b3",
+          backgroundColor: "#f4f1eb",
+          alignItems: "center" as const,
+          justifyContent: "center" as const,
+        }
+      : null;
+    return (
+      <View style={lentilleWhiteBackplateStyle ?? undefined}>
+        <Image
+          source={image}
+          style={{
+            width: imageWidthPx,
+            height: imageHeightPx,
+            transform: rotationDeg ? [{ rotate: `${rotationDeg}deg` }] : undefined,
+          }}
+          resizeMode="contain"
+        />
+      </View>
     );
   }
 

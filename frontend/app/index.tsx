@@ -266,14 +266,6 @@ export default function Index() {
     () => formesInComposition.length > 0,
     [formesInComposition],
   );
-  const existingFormeSizePx = useMemo(() => {
-    const existingForme = formesInComposition[0];
-    return existingForme ? getBeadConsumedLengthPx(existingForme) : 0;
-  }, [formesInComposition]);
-  const existingFormesTotalSizePx = useMemo(
-    () => formesInComposition.reduce((sum, bead) => sum + getBeadConsumedLengthPx(bead), 0),
-    [formesInComposition],
-  );
   const existingLeafFormeCount = useMemo(
     () => formesInComposition.filter((bead) => LEAF_FORME_VARIANT_IDS.has(bead.variantId ?? "")).length,
     [formesInComposition],
@@ -628,19 +620,21 @@ export default function Index() {
       });
 
       const allExistingAreLeaf = formeBeads.length > 0 && existingLeafFormes.length === formeBeads.length;
-      const canAddSecondLeaf = selectedIsLeaf && allExistingAreLeaf && formeBeads.length === 1;
 
-      if (canAddSecondLeaf) {
-        const nextFormes = [...formeBeads, createFormeBead(newBeadId())];
-        return [
-          ...nonFormeBeads.slice(0, insertionIndex),
-          ...nextFormes,
-          ...nonFormeBeads.slice(insertionIndex),
-        ];
+      let nextFormes: CompositionBead[];
+      if (selectedIsLeaf) {
+        if (formeBeads.length === 0) {
+          nextFormes = [createFormeBead(newBeadId())];
+        } else if (allExistingAreLeaf && existingLeafFormes.length < 2) {
+          nextFormes = [...formeBeads, createFormeBead(newBeadId())];
+        } else if (allExistingAreLeaf && existingLeafFormes.length >= 2) {
+          nextFormes = [createFormeBead(formeBeads[0]?.id ?? newBeadId()), ...formeBeads.slice(1)];
+        } else {
+          nextFormes = [createFormeBead(firstForme?.id ?? newBeadId())];
+        }
+      } else {
+        nextFormes = [createFormeBead(firstForme?.id ?? newBeadId())];
       }
-
-      const replacementId = firstForme?.id ?? newBeadId();
-      const nextFormes = [createFormeBead(replacementId)];
 
       return [
         ...nonFormeBeads.slice(0, insertionIndex),
@@ -901,6 +895,14 @@ export default function Index() {
     return c?.name;
   })();
 
+  const lettersRecapName = useMemo(() => {
+    return composition
+      .filter((bead) => bead.family === LETTRES_ID)
+      .map((bead) => bead.label ?? "")
+      .join("")
+      .trim();
+  }, [composition]);
+
   const configurationItems = useMemo<ConfigurationLineItem[]>(() => {
     const rawItems: ConfigurationLineItem[] = [];
 
@@ -916,11 +918,11 @@ export default function Index() {
       });
     }
 
-    if (personalizationMode === "letters" && lettersAppliedName.trim()) {
+    if (personalizationMode === "letters" && lettersRecapName) {
       rawItems.push({
         id: "letters",
         anchorYRatio: clampRatio((CLIP_SIZE_PX * 0.42) / NATURAL_HEIGHT),
-        text: normalizeNameToLetters(lettersAppliedName).join("") || lettersAppliedName.trim(),
+        text: lettersRecapName,
       });
     }
 
@@ -984,7 +986,7 @@ export default function Index() {
     });
 
     return adjusted;
-  }, [composition, engravingName, engravingPoliceId, lettersAppliedName, personalizationMode]);
+  }, [composition, engravingName, engravingPoliceId, lettersRecapName, personalizationMode]);
 
   const handleSelectPersonalizationMode = (mode: PersonalizationMode) => {
     hideCelebrationCig();
@@ -1286,8 +1288,8 @@ export default function Index() {
                       onBeadPress={handleBeadTap}
                       selectedBeadId={selectedBeadId}
                       clipModel={clipModel}
-                      showEngravingPreview={personalizationMode === "engraving"}
-                      engravingPreviewText="Votre prénom"
+                      showEngravingPreview={personalizationMode === "engraving" && !!engravingName.trim()}
+                      engravingPreviewText={engravingName.trim() ? "Votre prénom" : ""}
                     />
                   </View>
 
@@ -1429,8 +1431,6 @@ export default function Index() {
         mode={panel?.mode ?? "add"}
         currentLengthPx={totalLengthPx}
         excludeBeadSizePx={isReplaceMode ? selectedBeadSizePx : 0}
-        existingFormeSizePx={existingFormeSizePx}
-        existingFormesTotalSizePx={existingFormesTotalSizePx}
         existingFormeCount={formesInComposition.length}
         existingLeafFormeCount={existingLeafFormeCount}
         hasExistingForme={hasFormeInComposition}

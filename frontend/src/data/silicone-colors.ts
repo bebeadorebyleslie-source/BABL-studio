@@ -103,7 +103,13 @@ export const getSiliconeHexImageByColorId = (id: string) =>
 export const getSiliconeHexDimensionsByColorId = (id: string, targetHeight = 14) => {
   const source = getSiliconeHexImageByColorId(id);
   if (!source) return null;
-  const resolved = Image.resolveAssetSource(source);
+  const resolveAssetSource = (Image as unknown as {
+    resolveAssetSource?: (asset: ImageSourcePropType) => { width?: number; height?: number };
+  }).resolveAssetSource;
+  if (typeof resolveAssetSource !== "function") {
+    return { width: targetHeight, height: targetHeight };
+  }
+  const resolved = resolveAssetSource(source);
   const sourceWidth = resolved?.width ?? 0;
   const sourceHeight = resolved?.height ?? 0;
   if (!sourceWidth || !sourceHeight) {

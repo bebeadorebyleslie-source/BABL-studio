@@ -134,7 +134,7 @@ export default function PerlesSiliconePanel({
       const filtered = SILICONE_COLORS.filter((c) => variant.availableColorIds.includes(c.id));
       if (variant.shape !== "lentille") return filtered;
 
-      const orderMap = new Map(LENTILLE_DISPLAY_ORDER.map((id, index) => [id, index]));
+      const orderMap = new Map<string, number>(LENTILLE_DISPLAY_ORDER.map((id, index) => [id, index]));
       return [...filtered].sort((a, b) => (orderMap.get(a.id) ?? 999) - (orderMap.get(b.id) ?? 999));
     },
     [variant],

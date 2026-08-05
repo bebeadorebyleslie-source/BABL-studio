@@ -31,6 +31,8 @@ type Props = {
     hex?: string;
   } | null;
   onReplace?: () => void;
+  onDuplicate?: () => void;
+  canDuplicate?: boolean;
   onDelete: () => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
@@ -41,6 +43,8 @@ export default function BeadActionMenu({
   visible,
   bead,
   onReplace,
+  onDuplicate,
+  canDuplicate = true,
   onDelete,
   onMoveUp,
   onMoveDown,
@@ -127,6 +131,23 @@ export default function BeadActionMenu({
             >
               <Ionicons name="swap-horizontal" size={18} color="#5a4b3c" />
               <Text style={styles.replaceText}>Remplacer</Text>
+            </TouchableOpacity>
+          ) : null}
+
+          {onDuplicate ? (
+            <TouchableOpacity
+              testID="bead-action-duplicate"
+              style={[
+                styles.actionBtn,
+                styles.duplicateBtn,
+                !canDuplicate && styles.actionBtnDisabled,
+              ]}
+              activeOpacity={0.85}
+              onPress={onDuplicate}
+              disabled={!canDuplicate}
+            >
+              <Ionicons name="copy-outline" size={18} color={canDuplicate ? "#5a4b3c" : "#bfb2a3"} />
+              <Text style={[styles.duplicateText, !canDuplicate && styles.duplicateTextDisabled]}>Dupliquer</Text>
             </TouchableOpacity>
           ) : null}
 
@@ -250,10 +271,24 @@ const styles = StyleSheet.create({
   replaceBtn: {
     backgroundColor: "#f5efe4",
   },
+  duplicateBtn: {
+    backgroundColor: "#f5efe4",
+  },
+  actionBtnDisabled: {
+    backgroundColor: "#f0ebe3",
+  },
   replaceText: {
     color: "#5a4b3c",
     fontSize: 15,
     fontWeight: "600",
+  },
+  duplicateText: {
+    color: "#5a4b3c",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  duplicateTextDisabled: {
+    color: "#bfb2a3",
   },
   deleteBtn: {
     backgroundColor: "#c05a5a",

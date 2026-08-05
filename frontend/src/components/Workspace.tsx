@@ -57,6 +57,8 @@ type Props = {
   onBeadPress?: (beadId: string) => void;
   selectedBeadId?: string | null;
   clipModel?: ClipModel;
+  showEngravingPreview?: boolean;
+  engravingPreviewText?: string;
 };
 
 export default function Workspace({
@@ -66,6 +68,8 @@ export default function Workspace({
   onBeadPress,
   selectedBeadId,
   clipModel = DEFAULT_CLIP_MODEL,
+  showEngravingPreview = false,
+  engravingPreviewText = "",
 }: Props) {
   const scale = useMemo(() => {
     const sH = availableHeight && availableHeight > 0 ? availableHeight / NATURAL_HEIGHT : 1;
@@ -94,6 +98,24 @@ export default function Workspace({
             style={styles.clip}
             resizeMode="contain"
           />
+          {showEngravingPreview && engravingPreviewText.trim() && clipModel.engravingArea ? (
+            <View
+              pointerEvents="none"
+              style={[
+                styles.engravingPreviewWrap,
+                {
+                  left: clipModel.engravingArea.x,
+                  top: clipModel.engravingArea.y,
+                  width: clipModel.engravingArea.width,
+                  height: clipModel.engravingArea.height,
+                },
+              ]}
+            >
+              <Text numberOfLines={1} adjustsFontSizeToFit style={styles.engravingPreviewText}>
+                {engravingPreviewText}
+              </Text>
+            </View>
+          ) : null}
         </View>
 
         {/* Gabarit (Template) */}
@@ -139,8 +161,6 @@ export default function Workspace({
                     hex={item.hex ?? item.color ?? "#ddd"}
                     image={item.image}
                     label={item.label}
-                    widthMm={item.widthMm}
-                    heightMm={item.heightMm}
                     rotationDeg={item.family === "lettres" ? 90 : undefined}
                     renderWidthPx={isLetter ? letterWidthPx : explicitShapeWidthPx}
                     renderHeightPx={isLetter ? letterHeightPx : explicitShapeHeightPx}
@@ -180,6 +200,17 @@ const styles = StyleSheet.create({
     width: CLIP_SIZE,
     height: CLIP_SIZE,
     position: "relative",
+  },
+  engravingPreviewWrap: {
+    position: "absolute",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  engravingPreviewText: {
+    color: "#5a4b3c",
+    fontWeight: "700",
+    fontSize: 16,
+    letterSpacing: 0.2,
   },
   template: {
     width: TEMPLATE_WIDTH,
