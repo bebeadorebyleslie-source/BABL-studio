@@ -9,6 +9,7 @@ import {
   ImageSourcePropType,
   Pressable,
   Keyboard,
+  ScrollView,
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -204,6 +205,7 @@ export default function Index() {
   const [mobileNameEditorOpen, setMobileNameEditorOpen] = useState(false);
   const [engravingConfirmed, setEngravingConfirmed] = useState(false);
   const [showCelebrationCig, setShowCelebrationCig] = useState(false);
+  const [showWelcomeScreen, setShowWelcomeScreen] = useState(true);
   const celebrationFade = useRef(new Animated.Value(0)).current;
 
   const clipModel = DEFAULT_CLIP_MODEL;
@@ -1041,6 +1043,70 @@ export default function Index() {
     setPersonalizationMode(null);
   };
 
+  if (showWelcomeScreen) {
+    return (
+      <View style={styles.root}>
+        <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+          <StatusBar style="dark" />
+          <Header />
+
+          <ScrollView
+            style={styles.welcomeScroll}
+            contentContainerStyle={styles.welcomeContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.welcomeHeroCard}>
+              <Text style={styles.welcomeTitle}>✨ Bienvenue dans BABL Studio</Text>
+              <Text style={styles.welcomeSubtitle}>C'est vous qui créez votre attache-tétine !</Text>
+              <Text style={styles.welcomeBody}>
+                Choisissez vos perles, ajoutez un prénom et amusez-vous à créer votre propre combinaison.
+              </Text>
+            </View>
+
+            <View style={styles.welcomeSectionCard}>
+              <Text style={styles.welcomeSectionTitle}>Comment ça marche ?</Text>
+
+              <View style={styles.welcomeStepBlock}>
+                <Text style={styles.welcomeStepTitle}>🟢 1. Choisissez vos perles</Text>
+                <Text style={styles.welcomeStepText}>Ajoutez-les une par une sur le gabarit.</Text>
+              </View>
+
+              <View style={styles.welcomeStepBlock}>
+                <Text style={styles.welcomeStepTitle}>✏️ 2. Personnalisez-la</Text>
+                <Text style={styles.welcomeStepText}>Ajoutez un prénom en lettres ou en gravure.</Text>
+              </View>
+
+              <View style={styles.welcomeStepBlock}>
+                <Text style={styles.welcomeStepTitle}>📸 3. Terminé ?</Text>
+                <Text style={styles.welcomeStepText}>
+                  Faites une capture d'écran de votre création et envoyez-la-moi après votre commande.
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.welcomeSectionCard}>
+              <Text style={styles.welcomeSectionTitle}>💡 À savoir</Text>
+              <Text style={styles.welcomeBody}>
+                Si votre création se termine par une perle en silicone, une petite perle en bois sera ajoutée
+                automatiquement lors de la fabrication afin de maintenir correctement le nœud.
+              </Text>
+            </View>
+
+            <Pressable
+              testID="welcome-start-button"
+              style={styles.welcomeStartButton}
+              onPress={() => setShowWelcomeScreen(false)}
+              hitSlop={8}
+              pressRetentionOffset={12}
+            >
+              <Text style={styles.welcomeStartButtonText}>COMMENCER MA CRÉATION</Text>
+            </Pressable>
+          </ScrollView>
+        </SafeAreaView>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.root}>
       <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
@@ -1499,6 +1565,108 @@ export default function Index() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#fff8f2" },
   safeArea: { flex: 1, backgroundColor: "#fff8f2" },
+  welcomeScroll: {
+    flex: 1,
+  },
+  welcomeContent: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 26,
+    alignSelf: "center",
+    width: "100%",
+    maxWidth: 760,
+    gap: 12,
+  },
+  welcomeHeroCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#efe1cf",
+    backgroundColor: "#fffdf9",
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  welcomeSectionCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#efe1cf",
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  welcomeTitle: {
+    fontSize: 24,
+    lineHeight: 30,
+    fontWeight: "700",
+    color: "#5a4b3c",
+    marginBottom: 6,
+  },
+  welcomeSubtitle: {
+    fontSize: 16,
+    lineHeight: 22,
+    fontWeight: "700",
+    color: "#6f7f6a",
+    marginBottom: 8,
+  },
+  welcomeBody: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: "#7d6d5d",
+    fontWeight: "500",
+  },
+  welcomeSectionTitle: {
+    fontSize: 17,
+    lineHeight: 22,
+    fontWeight: "700",
+    color: "#5a4b3c",
+    marginBottom: 10,
+  },
+  welcomeStepBlock: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#f1e8dc",
+    backgroundColor: "#fffaf4",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 8,
+  },
+  welcomeStepTitle: {
+    fontSize: 14,
+    lineHeight: 19,
+    fontWeight: "700",
+    color: "#5a4b3c",
+    marginBottom: 4,
+  },
+  welcomeStepText: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: "#7d6d5d",
+    fontWeight: "500",
+  },
+  welcomeStartButton: {
+    marginTop: 2,
+    minHeight: 54,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "#6f7f6a",
+    backgroundColor: "#6f7f6a",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    elevation: 5,
+  },
+  welcomeStartButtonText: {
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: "700",
+    color: "#ffffff",
+    textAlign: "center",
+    letterSpacing: 0.2,
+  },
   modePanel: {
     marginHorizontal: 16,
     marginTop: 4,

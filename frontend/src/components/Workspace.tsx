@@ -15,15 +15,15 @@ import { ClipModel, DEFAULT_CLIP_MODEL } from "../data/clip-models";
 // === Dimensions naturelles (référence, ne jamais modifier) ===
 const CLIP_SIZE = 180;
 const TEMPLATE_WIDTH = 72;
-const TEMPLATE_HEIGHT = 620;
+const TEMPLATE_HEIGHT = 664;
 const TEMPLATE_BORDER = 2;
 const LOOP_SIZE = 140;
 const CLIP_TEMPLATE_OVERLAP = 18;
 const TEMPLATE_LOOP_OVERLAP = 4;
 
 // Espace intérieur du gabarit dédié aux perles (2px de bordure en haut et en bas)
-export const TEMPLATE_INNER_HEIGHT_PX = TEMPLATE_HEIGHT - TEMPLATE_BORDER * 2; // 616
-export const TEMPLATE_INNER_HEIGHT_MM = TEMPLATE_INNER_HEIGHT_PX / MM; // 154
+export const TEMPLATE_INNER_HEIGHT_PX = TEMPLATE_HEIGHT - TEMPLATE_BORDER * 2; // 660
+export const TEMPLATE_INNER_HEIGHT_MM = TEMPLATE_INNER_HEIGHT_PX / MM; // 165
 export const BEAD_STACK_OVERLAP_PX = 0.8;
 
 export const NATURAL_HEIGHT =
