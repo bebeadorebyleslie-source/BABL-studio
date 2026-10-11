@@ -1079,7 +1079,7 @@ export default function Index() {
               <View style={styles.welcomeStepBlock}>
                 <Text style={styles.welcomeStepTitle}>📸 3. Terminé ?</Text>
                 <Text style={styles.welcomeStepText}>
-                  Faites une capture d'écran de votre création et envoyez-la-moi après votre commande.
+                  Faites une capture d'écran et envoyez-la-moi après votre commande.
                 </Text>
               </View>
             </View>
@@ -1091,7 +1091,9 @@ export default function Index() {
                 automatiquement lors de la fabrication afin de maintenir correctement le nœud.
               </Text>
             </View>
+          </ScrollView>
 
+          <View style={styles.welcomeFooter}>
             <Pressable
               testID="welcome-start-button"
               style={styles.welcomeStartButton}
@@ -1101,7 +1103,7 @@ export default function Index() {
             >
               <Text style={styles.welcomeStartButtonText}>COMMENCER MA CRÉATION</Text>
             </Pressable>
-          </ScrollView>
+          </View>
         </SafeAreaView>
       </View>
     );
@@ -1355,7 +1357,7 @@ export default function Index() {
                       selectedBeadId={selectedBeadId}
                       clipModel={clipModel}
                       showEngravingPreview={personalizationMode === "engraving" && !!engravingName.trim()}
-                      engravingPreviewText={engravingName.trim() ? "Votre prénom" : ""}
+                      engravingPreviewText={engravingName.trim() ? "Prénom" : ""}
                     />
                   </View>
 
@@ -1429,19 +1431,6 @@ export default function Index() {
               style={styles.mobileActionBtn}
               onPress={() => {
                 hideCelebrationCig();
-                setSidebarOpen(true);
-              }}
-              testID="mobile-action-perles"
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              pressRetentionOffset={12}
-            >
-              <Ionicons name="ellipse-outline" size={18} color="#5a4b3c" />
-              <Text style={styles.mobileActionText}>Perles</Text>
-            </Pressable>
-            <Pressable
-              style={styles.mobileActionBtn}
-              onPress={() => {
-                hideCelebrationCig();
                 setModeCardsExpanded(true);
                 if (personalizationMode === "engraving" || personalizationMode === "letters") {
                   setMobileNameEditorOpen(true);
@@ -1453,6 +1442,19 @@ export default function Index() {
             >
               <Ionicons name="text" size={18} color="#5a4b3c" />
               <Text style={styles.mobileActionText}>Prénom</Text>
+            </Pressable>
+            <Pressable
+              style={styles.mobileActionBtn}
+              onPress={() => {
+                hideCelebrationCig();
+                setSidebarOpen(true);
+              }}
+              testID="mobile-action-perles"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              pressRetentionOffset={12}
+            >
+              <Ionicons name="ellipse-outline" size={18} color="#5a4b3c" />
+              <Text style={styles.mobileActionText}>Perles</Text>
             </Pressable>
           </View>
         </View>
@@ -1570,81 +1572,88 @@ const styles = StyleSheet.create({
   },
   welcomeContent: {
     paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 26,
+    paddingTop: 2,
+    paddingBottom: 8,
     alignSelf: "center",
     width: "100%",
     maxWidth: 760,
-    gap: 12,
+    gap: 8,
+  },
+  welcomeFooter: {
+    alignSelf: "center",
+    width: "100%",
+    maxWidth: 760,
+    paddingHorizontal: 16,
+    paddingTop: 6,
+    paddingBottom: 10,
   },
   welcomeHeroCard: {
-    borderRadius: 20,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: "#efe1cf",
     backgroundColor: "#fffdf9",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
   },
   welcomeSectionCard: {
-    borderRadius: 16,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: "#efe1cf",
     backgroundColor: "#ffffff",
-    paddingHorizontal: 14,
-    paddingVertical: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
   welcomeTitle: {
-    fontSize: 24,
-    lineHeight: 30,
+    fontSize: 21,
+    lineHeight: 26,
     fontWeight: "700",
     color: "#5a4b3c",
-    marginBottom: 6,
+    marginBottom: 2,
   },
   welcomeSubtitle: {
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: 15,
+    lineHeight: 20,
     fontWeight: "700",
     color: "#6f7f6a",
-    marginBottom: 8,
-  },
-  welcomeBody: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#7d6d5d",
-    fontWeight: "500",
-  },
-  welcomeSectionTitle: {
-    fontSize: 17,
-    lineHeight: 22,
-    fontWeight: "700",
-    color: "#5a4b3c",
-    marginBottom: 10,
-  },
-  welcomeStepBlock: {
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#f1e8dc",
-    backgroundColor: "#fffaf4",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 8,
-  },
-  welcomeStepTitle: {
-    fontSize: 14,
-    lineHeight: 19,
-    fontWeight: "700",
-    color: "#5a4b3c",
     marginBottom: 4,
   },
-  welcomeStepText: {
+  welcomeBody: {
     fontSize: 13,
     lineHeight: 18,
     color: "#7d6d5d",
     fontWeight: "500",
   },
+  welcomeSectionTitle: {
+    fontSize: 16,
+    lineHeight: 20,
+    fontWeight: "700",
+    color: "#5a4b3c",
+    marginBottom: 6,
+  },
+  welcomeStepBlock: {
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#f1e8dc",
+    backgroundColor: "#fffaf4",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginBottom: 4,
+  },
+  welcomeStepTitle: {
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: "700",
+    color: "#5a4b3c",
+    marginBottom: 1,
+  },
+  welcomeStepText: {
+    fontSize: 13,
+    lineHeight: 17,
+    color: "#7d6d5d",
+    fontWeight: "500",
+  },
   welcomeStartButton: {
-    marginTop: 2,
-    minHeight: 54,
+    minHeight: 50,
     borderRadius: 999,
     borderWidth: 1,
     borderColor: "#6f7f6a",

@@ -48,6 +48,10 @@ export const SILICONE_LENTILLE_IMAGES: Record<string, ImageSourcePropType> = {
   "sr-07": require("../../assets/images/silicone-ronde/sl-07.png"),
   "sr-13": require("../../assets/images/silicone-ronde/sl-13.png"),
   "sr-23": require("../../assets/images/silicone-ronde/sl-23.png"),
+  "sr-05": require("../../assets/images/silicone-ronde/sl-05.png"),
+  "sr-15": require("../../assets/images/silicone-ronde/sl-15.png"),
+  "sr-18": require("../../assets/images/silicone-ronde/sl-18.png"),
+  "sr-21": require("../../assets/images/silicone-ronde/sl-21.png"),
 };
 
 export const SILICONE_ETOILE_IMAGES: Record<string, ImageSourcePropType> = {
@@ -158,7 +162,7 @@ export const SILICONE_VARIANTS: SiliconeVariant[] = [
     label: "Lentille",
     shape: "lentille",
     size: 5,
-    availableColorIds: ["sr-01", "sr-13", "sr-07", "sr-23"],
+    availableColorIds: ["sr-01", "sr-13", "sr-07", "sr-23", "sr-05", "sr-15", "sr-18", "sr-21"],
   },
   {
     id: "etoile-14",

@@ -41,7 +41,9 @@ type FanLayout = {
   fanHeight: number;
 };
 
-const LENTILLE_DISPLAY_ORDER = ["sr-01", "sr-07", "sr-23", "sr-13"] as const;
+const LENTILLE_DISPLAY_ORDER = ["sr-01", "sr-07", "sr-23", "sr-13", "sr-05", "sr-15", "sr-18", "sr-21"] as const;
+const LENTILLE_ROWS_PER_COLUMN = 4;
+const LENTILLE_COLUMN_OFFSET_PX = 45;
 
 const getFanLayout = (colorCount: number): FanLayout => {
   if (colorCount >= 20) {
@@ -166,8 +168,9 @@ export default function PerlesSiliconePanel({
       ? Math.max(24, layout.beadVisualSize - 4)
       : layout.beadVisualSize;
   const lentilleStepPx = beadVisualSize + 12;
-  const lentilleStartYPx =
-    (layout.fanHeight - (availableColors.length - 1) * lentilleStepPx) / 2;
+  const lentilleRows = Math.min(availableColors.length, LENTILLE_ROWS_PER_COLUMN);
+  const lentilleStartYPx = (layout.fanHeight - (lentilleRows - 1) * lentilleStepPx) / 2;
+  const lentilleTwoColumns = availableColors.length > LENTILLE_ROWS_PER_COLUMN;
   const CX = layout.fanWidth / 2;
   const CY = layout.fanHeight - 15;
 
@@ -281,7 +284,12 @@ export default function PerlesSiliconePanel({
               slice.colors.map((c, i) => {
                 const isLentille = variant.shape === "lentille";
                 const { x, y } = isLentille
-                  ? { x: CX, y: lentilleStartYPx + i * lentilleStepPx }
+                  ? {
+                      x: lentilleTwoColumns
+                        ? CX + (i < LENTILLE_ROWS_PER_COLUMN ? -1 : 1) * LENTILLE_COLUMN_OFFSET_PX
+                        : CX,
+                      y: lentilleStartYPx + (i % LENTILLE_ROWS_PER_COLUMN) * lentilleStepPx,
+                    }
                   : beadPos(i, slice.colors.length, slice.radius);
                 const isHex = variant.shape === "hexagone";
                 const hexVisualDims = isHex
